@@ -105,6 +105,34 @@ export const Result = {
     }
     return defaultValue;
   },
+
+  /**
+   * Chains Result-returning operations (flatMap/bind)
+   * If the result is a success, applies fn to the value and returns the new Result.
+   * If the result is a failure, returns the failure unchanged.
+   */
+  flatMap: <T, U, E>(result: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> => {
+    if (result.success) {
+      return fn(result.value);
+    }
+    return result;
+  },
+
+  /**
+   * Pattern matches on a Result, calling the appropriate handler
+   */
+  match: <T, E, U>(
+    result: Result<T, E>,
+    handlers: {
+      success: (value: T) => U;
+      failure: (error: E) => U;
+    }
+  ): U => {
+    if (result.success) {
+      return handlers.success(result.value);
+    }
+    return handlers.failure(result.error);
+  },
 };
 
 /**
