@@ -1,7 +1,6 @@
 // Presentation Layer - React components and UI
-// Export components, pages, hooks, and stores
+// Export components, pages, hooks, stores, and router
 
-export * from './components';
-export * from './hooks';
+export * from './components/layout';
 export * from './pages';
-export * from './stores';
+export * from './router';

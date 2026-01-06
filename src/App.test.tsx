@@ -1,31 +1,23 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import { describe, expect,it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import App from './App';
 
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
-
-const renderWithProviders = (ui: React.ReactElement) => {
-  const queryClient = createTestQueryClient();
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
-};
-
 describe('App', () => {
-  it('renders the dashboard heading', () => {
-    renderWithProviders(<App />);
-    expect(
-      screen.getByRole('heading', { name: /customer success metrics dashboard/i })
-    ).toBeInTheDocument();
+  it('renders the application with header', () => {
+    render(<App />);
+    expect(screen.getByText('Customer Success')).toBeInTheDocument();
   });
 
-  it('shows no data message when data is not loaded', () => {
-    renderWithProviders(<App />);
-    expect(screen.getByText(/no data loaded yet/i)).toBeInTheDocument();
+  it('renders the dashboard page by default', () => {
+    render(<App />);
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+  });
+
+  it('renders navigation links', () => {
+    render(<App />);
+    expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /customers/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /import/i })).toBeInTheDocument();
   });
 });
