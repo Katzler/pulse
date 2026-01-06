@@ -1,17 +1,383 @@
+import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { HealthScoreCalculator } from '@domain/services';
+import type { ImportCustomersOutput, ImportRowError } from '@application/use-cases';
+import { ImportCustomersUseCase } from '@application/use-cases';
+import { CsvParser } from '@infrastructure/csv';
+import { InMemoryCustomerRepository } from '@infrastructure/repositories';
+import { Button, FileUpload } from '@presentation/components/common';
+import { useUIStore } from '@presentation/stores';
+import type { RawCustomerRecord } from '@shared/types';
+
+/**
+ * Import result state
+ */
+interface ImportResult {
+  success: boolean;
+  totalRows: number;
+  importedCount: number;
+  errorCount: number;
+  errors: ImportRowError[];
+}
+
+/**
+ * Check icon for success state
+ */
+function CheckIcon() {
+  return (
+    <svg
+      className="h-12 w-12 text-green-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Warning icon for partial success
+ */
+function WarningIcon() {
+  return (
+    <svg
+      className="h-12 w-12 text-yellow-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Error icon for failure state
+ */
+function ErrorIcon() {
+  return (
+    <svg
+      className="h-12 w-12 text-red-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Map RawCustomerRecord (from CsvParser) to the format ImportCustomersUseCase expects
+ */
+function mapToImportRecord(record: RawCustomerRecord) {
+  return {
+    'Sirvoy Customer ID': record['Sirvoy Customer ID'],
+    'Account Owner': record['Account Owner'],
+    'Latest Login': record['Latest Login'],
+    'Created Date': record['Created Date'],
+    'Billing Country': record['Billing Country'],
+    'Account Type': record['Account Type'],
+    Languages: record['Language'],
+    Status: record['Status'],
+    'Account Status': record['Sirvoy Account Status'],
+    'Property Type': record['Property Type'],
+    MRR: record['MRR (converted)'],
+    Currency: record['MRR (converted) Currency'],
+    Channels: record['Channels'],
+  };
+}
+
 /**
  * Import page - CSV file upload and processing.
- * Placeholder for Phase 6 implementation.
+ * Allows users to upload CSV files containing customer data.
  */
 export function Import() {
+  const navigate = useNavigate();
+  const addToast = useUIStore((state) => state.addToast);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  // Create instances for processing
+  const csvParser = useMemo(() => new CsvParser(), []);
+  const repository = useMemo(() => new InMemoryCustomerRepository(), []);
+  const healthCalculator = useMemo(() => new HealthScoreCalculator(), []);
+  const importUseCase = useMemo(
+    () => new ImportCustomersUseCase(repository, healthCalculator),
+    [repository, healthCalculator]
+  );
+
+  const handleFileSelect = useCallback((file: File) => {
+    setSelectedFile(file);
+    setImportResult(null);
+  }, []);
+
+  const handleImport = useCallback(async () => {
+    if (!selectedFile) return;
+
+    setIsProcessing(true);
+
+    try {
+      // Parse CSV file
+      const parseResult = await csvParser.parseFile(selectedFile);
+
+      if (!parseResult.success) {
+        addToast({
+          type: 'error',
+          title: 'Parse Error',
+          message: parseResult.error.message,
+        });
+        setImportResult({
+          success: false,
+          totalRows: 0,
+          importedCount: 0,
+          errorCount: 1,
+          errors: [
+            {
+              row: parseResult.error.row,
+              field: parseResult.error.column ?? 'file',
+              message: parseResult.error.message,
+            },
+          ],
+        });
+        return;
+      }
+
+      // Map records to the format expected by ImportCustomersUseCase
+      const mappedRecords = parseResult.value.records.map(mapToImportRecord);
+
+      // Import customers
+      const importResultData = importUseCase.execute({ records: mappedRecords });
+
+      if (!importResultData.success) {
+        addToast({
+          type: 'error',
+          title: 'Import Failed',
+          message: importResultData.error,
+        });
+        setImportResult({
+          success: false,
+          totalRows: parseResult.value.totalRows,
+          importedCount: 0,
+          errorCount: 1,
+          errors: [{ row: 0, field: 'import', message: importResultData.error }],
+        });
+        return;
+      }
+
+      const result: ImportCustomersOutput = importResultData.value;
+
+      setImportResult({
+        success: result.success,
+        totalRows: result.totalRows,
+        importedCount: result.importedCount,
+        errorCount: result.errorCount,
+        errors: result.errors,
+      });
+
+      if (result.importedCount > 0) {
+        addToast({
+          type: result.errorCount > 0 ? 'warning' : 'success',
+          title: result.errorCount > 0 ? 'Import Completed with Warnings' : 'Import Successful',
+          message: `${result.importedCount} of ${result.totalRows} customers imported.`,
+        });
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Import Failed',
+          message: 'No customers were imported. Please check the errors below.',
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      addToast({
+        type: 'error',
+        title: 'Import Error',
+        message,
+      });
+      setImportResult({
+        success: false,
+        totalRows: 0,
+        importedCount: 0,
+        errorCount: 1,
+        errors: [{ row: 0, field: 'system', message }],
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [selectedFile, csvParser, importUseCase, addToast]);
+
+  const handleReset = useCallback(() => {
+    setSelectedFile(null);
+    setImportResult(null);
+  }, []);
+
+  const handleViewDashboard = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  const handleViewCustomers = useCallback(() => {
+    navigate('/customers');
+  }, [navigate]);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Import Data</h1>
         <p className="text-gray-600">Upload CSV files to import customer data</p>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="text-gray-500">Import functionality coming in Phase 6</p>
-      </div>
+
+      {!importResult ? (
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <FileUpload
+              label="Upload customer CSV file"
+              helperText="CSV files up to 10MB with standard customer data format"
+              accept=".csv"
+              maxSize={10 * 1024 * 1024}
+              onFileSelect={handleFileSelect}
+              disabled={isProcessing}
+            />
+          </div>
+
+          {selectedFile && (
+            <div className="flex items-center justify-end gap-3">
+              <Button variant="secondary" onClick={handleReset} disabled={isProcessing}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleImport} disabled={isProcessing}>
+                {isProcessing ? 'Importing...' : 'Import Data'}
+              </Button>
+            </div>
+          )}
+
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Expected CSV Format</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your CSV file should contain the following columns:
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              {[
+                'Account Owner',
+                'Latest Login',
+                'Created Date',
+                'Billing Country',
+                'Account Type',
+                'Language',
+                'Status',
+                'Sirvoy Account Status',
+                'Sirvoy Customer ID',
+                'Property Type',
+                'MRR (converted) Currency',
+                'MRR (converted)',
+                'Channels',
+              ].map((header) => (
+                <code key={header} className="bg-white px-2 py-1 rounded border text-gray-700">
+                  {header}
+                </code>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Result Summary */}
+          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+            <div className="flex justify-center mb-4">
+              {importResult.importedCount === importResult.totalRows && importResult.totalRows > 0 ? (
+                <CheckIcon />
+              ) : importResult.importedCount > 0 ? (
+                <WarningIcon />
+              ) : (
+                <ErrorIcon />
+              )}
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {importResult.importedCount === importResult.totalRows && importResult.totalRows > 0
+                ? 'Import Successful'
+                : importResult.importedCount > 0
+                  ? 'Import Completed with Errors'
+                  : 'Import Failed'}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {importResult.importedCount} of {importResult.totalRows} customers imported
+              {importResult.errorCount > 0 && ` (${importResult.errorCount} errors)`}
+            </p>
+
+            <div className="flex justify-center gap-3">
+              <Button variant="secondary" onClick={handleReset}>
+                Import Another File
+              </Button>
+              {importResult.importedCount > 0 && (
+                <>
+                  <Button variant="primary" onClick={handleViewDashboard}>
+                    View Dashboard
+                  </Button>
+                  <Button variant="secondary" onClick={handleViewCustomers}>
+                    View Customers
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Error Details */}
+          {importResult.errors.length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+              <h3 className="text-lg font-semibold text-red-900 mb-3">
+                Import Errors ({importResult.errors.length})
+              </h3>
+              <div className="max-h-64 overflow-y-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-red-700">
+                      <th className="pb-2 pr-4">Row</th>
+                      <th className="pb-2 pr-4">Field</th>
+                      <th className="pb-2">Error</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-red-800">
+                    {importResult.errors.slice(0, 50).map((error, index) => (
+                      <tr key={index} className="border-t border-red-200">
+                        <td className="py-2 pr-4">{error.row}</td>
+                        <td className="py-2 pr-4">{error.field}</td>
+                        <td className="py-2">{error.message}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {importResult.errors.length > 50 && (
+                  <p className="mt-3 text-red-700">
+                    ...and {importResult.errors.length - 50} more errors
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
