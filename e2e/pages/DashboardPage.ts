@@ -1,4 +1,4 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Locator,type Page } from '@playwright/test';
 
 /**
  * Page Object Model for the Dashboard page.

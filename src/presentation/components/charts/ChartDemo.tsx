@@ -1,19 +1,21 @@
 import {
-  BarChart,
+  Area,
+  AreaChart,
   Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
-  RadialBarChart,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
   RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
 
 const barData = [
@@ -32,6 +34,13 @@ const lineData = [
 const pieData = [
   { name: 'Active', value: 80 },
   { name: 'Inactive', value: 20 },
+];
+
+const areaData = [
+  { month: 'Jan', mrr: 12000 },
+  { month: 'Feb', mrr: 14500 },
+  { month: 'Mar', mrr: 16200 },
+  { month: 'Apr', mrr: 18000 },
 ];
 
 const COLORS = ['#22C55E', '#F59E0B', '#EF4444'];
@@ -67,6 +76,17 @@ export function ChartDemo() {
           <Tooltip />
           <Line type="monotone" dataKey="score" stroke="#3B82F6" strokeWidth={2} />
         </LineChart>
+      </ResponsiveContainer>
+
+      <h3>Area Chart - Cumulative MRR</h3>
+      <ResponsiveContainer width="100%" height={200}>
+        <AreaChart data={areaData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Area type="monotone" dataKey="mrr" stroke="#3B82F6" fill="#93C5FD" fillOpacity={0.6} />
+        </AreaChart>
       </ResponsiveContainer>
 
       <h3>Pie Chart - Activity Status</h3>

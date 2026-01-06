@@ -19,6 +19,21 @@ export const CustomerStatus = {
 export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus];
 
 /**
+ * Property type classification for customer properties.
+ * Common values from the CSV data.
+ */
+export const PropertyType = {
+  Hotels: 'Hotels',
+  BedAndBreakfast: 'Bed & Breakfast',
+  Hostel: 'Hostel',
+  Vacation: 'Vacation',
+  Apartment: 'Apartment',
+  Other: 'Other',
+} as const;
+
+export type PropertyType = (typeof PropertyType)[keyof typeof PropertyType];
+
+/**
  * Raw record structure as imported from CSV file.
  * Field names match the CSV column headers exactly.
  */

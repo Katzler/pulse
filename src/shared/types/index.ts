@@ -3,29 +3,31 @@
 // CSV data types
 export {
   AccountType,
-  CustomerStatus,
   CSV_HEADERS,
+  CustomerStatus,
+  PropertyType,
   type RawCustomerRecord,
 } from './csv.types';
 
 // Branded types for type safety
 export {
-  CustomerId,
-  HealthScoreValue,
-  MrrValue,
   CurrencyCode,
+  CustomerId,
   type DateString,
   type DateTimeString,
+  HealthScoreValue,
+  MrrValue,
 } from './branded.types';
 
 // Utility types
 export {
-  Result,
-  type Nullable,
+  type AsyncResult,
   type DeepPartial,
   type ElementOf,
-  type RequireKeys,
-  type Success,
   type Failure,
-  type AsyncResult,
+  type Nullable,
+  type Optional,
+  type RequireKeys,
+  Result,
+  type Success,
 } from './utility.types';

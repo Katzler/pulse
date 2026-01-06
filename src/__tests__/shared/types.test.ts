@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect,it } from 'vitest';
+
 import {
   AccountType,
+  CustomerId,
   CustomerStatus,
   HealthScoreValue,
-  CustomerId,
   Result,
 } from '@shared/types';
 

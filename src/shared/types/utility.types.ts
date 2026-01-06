@@ -25,6 +25,11 @@ export type ElementOf<T> = T extends readonly (infer E)[] ? E : never;
 export type RequireKeys<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
 /**
+ * Makes specific keys optional while keeping others unchanged
+ */
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+/**
  * Result type for explicit error handling.
  * Follows the functional programming pattern of returning
  * either a success value or an error, never throwing.

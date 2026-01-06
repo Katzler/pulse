@@ -1,7 +1,7 @@
 // React Components
 
-export * from './common';
 export * from './charts';
-export * from './dashboard';
+export * from './common';
 export * from './customers';
+export * from './dashboard';
 export * from './layout';
