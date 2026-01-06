@@ -8,6 +8,15 @@ export {
   type HealthDistributionChartProps,
 } from './HealthDistributionChart';
 export {
+  HealthScoreBreakdown,
+  type HealthScoreBreakdownProps,
+} from './HealthScoreBreakdown';
+export {
+  type GaugeSize,
+  HealthScoreGauge,
+  type HealthScoreGaugeProps,
+} from './HealthScoreGauge';
+export {
   MrrByCountryChart,
   type MrrByCountryChartProps,
 } from './MrrByCountryChart';

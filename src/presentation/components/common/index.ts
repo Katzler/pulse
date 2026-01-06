@@ -13,7 +13,13 @@ export {
   withErrorBoundary,
 } from './ErrorBoundary';
 export { ErrorMessage, type ErrorMessageProps } from './ErrorMessage';
+export {
+  ExportButton,
+  type ExportButtonProps,
+  type ExportFormat,
+} from './ExportButton';
 export { FileUpload, type FileUploadProps } from './FileUpload';
+export { KeyboardShortcutsHelp, type KeyboardShortcutsHelpProps } from './KeyboardShortcutsHelp';
 export { LoadingSkeleton, type LoadingSkeletonProps } from './LoadingSkeleton';
 export { LoadingSpinner, type LoadingSpinnerProps } from './LoadingSpinner';
 export {
