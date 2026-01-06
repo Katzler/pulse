@@ -1,3 +1,9 @@
 // Domain Services
 
-export { type FactorBreakdown, HealthScoreCalculator } from './HealthScoreCalculator';
+export {
+  type ClassificationExplanation,
+  type FactorBreakdown,
+  type FactorExplanation,
+  type FormulaExplanation,
+  HealthScoreCalculator,
+} from './HealthScoreCalculator';

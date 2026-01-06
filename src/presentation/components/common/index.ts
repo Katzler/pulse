@@ -19,6 +19,10 @@ export {
   type ExportFormat,
 } from './ExportButton';
 export { FileUpload, type FileUploadProps } from './FileUpload';
+export {
+  HealthScoreFormulaTooltip,
+  type HealthScoreFormulaTooltipProps,
+} from './HealthScoreFormulaTooltip';
 export { KeyboardShortcutsHelp, type KeyboardShortcutsHelpProps } from './KeyboardShortcutsHelp';
 export { LoadingSkeleton, type LoadingSkeletonProps } from './LoadingSkeleton';
 export { LoadingSpinner, type LoadingSpinnerProps } from './LoadingSpinner';
@@ -34,4 +38,4 @@ export {
 } from './MetricCard';
 export { Toast, type ToastProps } from './Toast';
 export { ToastContainer, type ToastContainerProps } from './ToastContainer';
-export { Tooltip, type TooltipProps } from './Tooltip';
+export { InfoTooltip, type InfoTooltipProps, Tooltip, type TooltipProps } from './Tooltip';

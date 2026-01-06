@@ -5,4 +5,5 @@ export * from './composition';
 export * from './dtos';
 export * from './errors';
 export * from './mappers';
+export * from './services';
 export * from './use-cases';

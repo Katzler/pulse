@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AppProvider } from '@presentation/context';
 import { useCustomerStore, useUIStore } from '@presentation/stores';
 
 import { Import } from '../Import';
@@ -27,11 +28,15 @@ vi.mock('@infrastructure/csv', () => ({
 
 // Mock ImportCustomersUseCase as a class
 const mockExecute = vi.fn();
-vi.mock('@application/use-cases', () => ({
-  ImportCustomersUseCase: class MockImportCustomersUseCase {
-    execute = mockExecute;
-  },
-}));
+vi.mock('@application/use-cases', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@application/use-cases')>();
+  return {
+    ...actual,
+    ImportCustomersUseCase: class MockImportCustomersUseCase {
+      execute = mockExecute;
+    },
+  };
+});
 
 // Mock domain services as a class
 vi.mock('@domain/services', () => ({
@@ -48,6 +53,7 @@ vi.mock('@infrastructure/repositories', () => ({
       value: { successCount: 1, failedCount: 0, errors: [] },
     });
     getAll = vi.fn().mockReturnValue([]);
+    setHealthScoreCalculator = vi.fn();
   },
 }));
 
@@ -62,9 +68,11 @@ vi.mock('@domain/value-objects', () => ({
 
 function renderImport() {
   return render(
-    <MemoryRouter>
-      <Import />
-    </MemoryRouter>
+    <AppProvider>
+      <MemoryRouter>
+        <Import />
+      </MemoryRouter>
+    </AppProvider>
   );
 }
 

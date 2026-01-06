@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { HealthScoreCalculator } from '@domain/services';
 import { HealthScoreClassification } from '@domain/value-objects';
 import type {
   CustomerSummaryDTO,
@@ -10,10 +9,9 @@ import type {
   HealthDistributionDTO,
 } from '@application/dtos';
 import type { ImportCustomersOutput, ImportRowError } from '@application/use-cases';
-import { ImportCustomersUseCase } from '@application/use-cases';
 import { CsvParser } from '@infrastructure/csv';
-import { InMemoryCustomerRepository } from '@infrastructure/repositories';
 import { Button, FileUpload } from '@presentation/components/common';
+import { useApp } from '@presentation/context';
 import { useCustomerStore, useUIStore } from '@presentation/stores';
 import type { RawCustomerRecord } from '@shared/types';
 
@@ -125,18 +123,15 @@ export function Import() {
   const setCustomers = useCustomerStore((state) => state.setCustomers);
   const setDashboardMetrics = useCustomerStore((state) => state.setDashboardMetrics);
 
+  // Get shared instances from app context
+  const { useCases, repository, healthScoreCalculator } = useApp();
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  // Create instances for processing - repository needs to be accessible for post-import queries
+  // CSV parser instance
   const csvParser = useMemo(() => new CsvParser(), []);
-  const repository = useMemo(() => new InMemoryCustomerRepository(), []);
-  const healthCalculator = useMemo(() => new HealthScoreCalculator(), []);
-  const importUseCase = useMemo(
-    () => new ImportCustomersUseCase(repository, healthCalculator),
-    [repository, healthCalculator]
-  );
 
   /**
    * Convert repository customers to CustomerSummaryDTO for the store
@@ -156,7 +151,7 @@ export function Import() {
 
     const summaries: CustomerSummaryDTO[] = customers.map((customer) => {
       // Calculate health score for this customer
-      const healthResult = healthCalculator.calculate(customer);
+      const healthResult = healthScoreCalculator.calculate(customer);
       const healthScore = healthResult.success ? healthResult.value.value : 0;
       const classification = healthResult.success
         ? healthResult.value.getClassification()
@@ -239,7 +234,7 @@ export function Import() {
 
     setCustomers(summaries);
     setDashboardMetrics(dashboardMetrics);
-  }, [repository, healthCalculator, setCustomers, setDashboardMetrics]);
+  }, [repository, healthScoreCalculator, setCustomers, setDashboardMetrics]);
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
@@ -280,8 +275,8 @@ export function Import() {
       // Map records to the format expected by ImportCustomersUseCase
       const mappedRecords = parseResult.value.records.map(mapToImportRecord);
 
-      // Import customers
-      const importResultData = importUseCase.execute({ records: mappedRecords });
+      // Import customers using the shared use case
+      const importResultData = useCases.importCustomers.execute({ records: mappedRecords });
 
       if (!importResultData.success) {
         addToast({
@@ -342,7 +337,7 @@ export function Import() {
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedFile, csvParser, importUseCase, addToast, updateCustomerStore]);
+  }, [selectedFile, csvParser, useCases.importCustomers, addToast, updateCustomerStore]);
 
   const handleReset = useCallback(() => {
     setSelectedFile(null);

@@ -135,3 +135,135 @@ export function Tooltip({
     </div>
   );
 }
+
+/**
+ * Info icon SVG component
+ */
+function InfoIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Props for InfoTooltip component
+ */
+export interface InfoTooltipProps {
+  /** Title for the tooltip */
+  title?: string;
+  /** Main content/description */
+  content: React.ReactNode;
+  /** Position of the tooltip */
+  position?: 'top' | 'right' | 'bottom' | 'left';
+  /** Size of the info icon */
+  iconSize?: 'small' | 'medium';
+  /** Additional className for the icon */
+  iconClassName?: string;
+  /** Whether the tooltip is disabled */
+  disabled?: boolean;
+}
+
+/**
+ * InfoTooltip component displays an info icon that shows detailed content on hover.
+ * Ideal for explaining formulas, metrics, or providing contextual help.
+ *
+ * @example
+ * <InfoTooltip
+ *   title="Health Score"
+ *   content="Calculated based on activity, login recency, and more."
+ * />
+ */
+export function InfoTooltip({
+  title,
+  content,
+  position = 'top',
+  iconSize = 'small',
+  iconClassName = '',
+  disabled = false,
+}: InfoTooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const showTooltip = useCallback(() => {
+    if (disabled) return;
+    timeoutRef.current = setTimeout(() => {
+      setIsVisible(true);
+    }, 200);
+  }, [disabled]);
+
+  const hideTooltip = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsVisible(false);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Escape' && isVisible) {
+        hideTooltip();
+      }
+    },
+    [isVisible, hideTooltip]
+  );
+
+  const iconSizeClasses = iconSize === 'small' ? 'w-4 h-4' : 'w-5 h-5';
+
+  if (disabled) {
+    return null;
+  }
+
+  return (
+    <div
+      className="relative inline-flex items-center"
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
+      onFocus={showTooltip}
+      onBlur={hideTooltip}
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        type="button"
+        className={`
+          ${iconSizeClasses} text-gray-400 hover:text-gray-600
+          transition-colors cursor-help focus:outline-none focus:ring-2
+          focus:ring-blue-500 focus:ring-offset-1 rounded-full
+          ${iconClassName}
+        `}
+        aria-label={title ? `Info about ${title}` : 'More information'}
+        tabIndex={0}
+      >
+        <InfoIcon className={iconSizeClasses} />
+      </button>
+      {isVisible && (
+        <div
+          className={`
+            absolute z-50 p-3 text-sm bg-white rounded-lg shadow-lg
+            border border-gray-200 min-w-64 max-w-sm
+            animate-in fade-in duration-150
+            ${getPositionClasses(position)}
+          `}
+          role="tooltip"
+        >
+          {title && (
+            <p className="font-semibold text-gray-900 mb-1">{title}</p>
+          )}
+          <div className="text-gray-600">{content}</div>
+        </div>
+      )}
+    </div>
+  );
+}

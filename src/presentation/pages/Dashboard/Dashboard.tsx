@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import type { CustomerSummaryDTO, DashboardMetricsDTO, DistributionItem } from '@application/dtos';
 import {
@@ -18,6 +18,7 @@ import {
   EmptyDataIcon,
   EmptyState,
   HeartPulseIcon,
+  HealthScoreFormulaTooltip,
   LoadingSkeleton,
   MetricCard,
   PageErrorBoundary,
@@ -216,6 +217,7 @@ function DashboardHeader({ lastUpdated }: { lastUpdated: Date | null }) {
  * Main dashboard content with metrics and charts
  */
 function DashboardContent() {
+  const navigate = useNavigate();
   const storedMetrics = useCustomerStore((state) => state.dashboardMetrics);
   const customers = useCustomerStore((state) => state.customers);
   const lastUpdated = useCustomerStore((state) => state.lastUpdated);
@@ -231,6 +233,39 @@ function DashboardContent() {
     }
     return null;
   }, [storedMetrics, customers]);
+
+  // Navigation handlers for chart clicks
+  const handleHealthSegmentClick = useCallback(
+    (category: 'healthy' | 'atRisk' | 'critical') => {
+      navigate(`/customers?health=${category}`);
+    },
+    [navigate]
+  );
+
+  const handleCountryClick = useCallback(
+    (country: string) => {
+      navigate(`/customers?country=${encodeURIComponent(country)}`);
+    },
+    [navigate]
+  );
+
+  const handleChannelClick = useCallback(
+    (channel: string) => {
+      navigate(`/customers?channel=${encodeURIComponent(channel)}`);
+    },
+    [navigate]
+  );
+
+  const handleCustomerClick = useCallback(
+    (customerId: string) => {
+      navigate(`/customers/${customerId}`);
+    },
+    [navigate]
+  );
+
+  const handleViewAtRisk = useCallback(() => {
+    navigate('/customers?health=atRisk');
+  }, [navigate]);
 
   // Show empty state if no data available
   if (!dashboardMetrics) {
@@ -291,14 +326,16 @@ function DashboardContent() {
         <Card data-testid="portfolio-health-section">
           <h2
             id="portfolio-health-heading"
-            className="mb-4 text-lg font-semibold text-gray-900"
+            className="mb-4 text-lg font-semibold text-gray-900 flex items-center gap-2"
           >
             Portfolio Health Overview
+            <HealthScoreFormulaTooltip variant="full" position="right" />
           </h2>
           <PortfolioHealthTrend
             currentHealth={dashboardMetrics.healthDistribution}
             averageHealthScore={dashboardMetrics.averageHealthScore}
             totalCustomers={dashboardMetrics.totalCustomers}
+            onViewAtRisk={handleViewAtRisk}
           />
         </Card>
       </section>
@@ -311,13 +348,15 @@ function DashboardContent() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Health Distribution Chart */}
           <Card data-testid="health-distribution-section">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 flex items-center gap-2">
               Health Score Distribution
+              <HealthScoreFormulaTooltip variant="classifications" position="right" />
             </h3>
             <ChartErrorBoundary>
               <HealthDistributionChart
                 data={dashboardMetrics.healthDistribution}
                 height={280}
+                onSegmentClick={handleHealthSegmentClick}
               />
             </ChartErrorBoundary>
           </Card>
@@ -331,6 +370,7 @@ function DashboardContent() {
               <MrrByCountryChart
                 data={dashboardMetrics.countryDistribution}
                 height={280}
+                onCountryClick={handleCountryClick}
               />
             </ChartErrorBoundary>
           </Card>
@@ -344,6 +384,7 @@ function DashboardContent() {
               <ChannelAdoptionChart
                 data={dashboardMetrics.channelDistribution}
                 height={280}
+                onChannelClick={handleChannelClick}
               />
             </ChartErrorBoundary>
           </Card>
@@ -353,7 +394,11 @@ function DashboardContent() {
             <h3 className="mb-4 text-lg font-semibold text-gray-900">
               At-Risk Customers
             </h3>
-            <AtRiskCustomersWidget customers={customers} maxDisplay={5} />
+            <AtRiskCustomersWidget
+              customers={customers}
+              maxDisplay={5}
+              onCustomerClick={handleCustomerClick}
+            />
           </Card>
         </div>
       </section>
