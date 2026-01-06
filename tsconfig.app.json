@@ -5,7 +5,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "vitest/globals"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -15,6 +15,21 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@domain/*": ["src/domain/*"],
+      "@application/*": ["src/application/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@presentation/*": ["src/presentation/*"],
+      "@shared/*": ["src/shared/*"],
+      "@components/*": ["src/presentation/components/*"],
+      "@hooks/*": ["src/presentation/hooks/*"],
+      "@pages/*": ["src/presentation/pages/*"],
+      "@stores/*": ["src/presentation/stores/*"],
+      "@tests/*": ["src/__tests__/*"]
+    },
 
     /* Linting */
     "strict": true,
