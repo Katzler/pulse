@@ -136,7 +136,7 @@ describe('GetCustomerDetailsUseCase', () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const breakdown = result.value.healthBreakdown;
+        const breakdown = result.value.healthScore;
         expect(breakdown.totalScore).toBeGreaterThanOrEqual(0);
         expect(breakdown.activityScore).toBeGreaterThanOrEqual(0);
         expect(breakdown.loginRecencyScore).toBeGreaterThanOrEqual(0);
@@ -194,6 +194,87 @@ describe('GetCustomerDetailsUseCase', () => {
       if (result.success) {
         // Inactive customers score 0 for activity, likely at-risk or critical
         expect(['at-risk', 'critical']).toContain(result.value.customer.healthClassification);
+      }
+    });
+
+    it('includes comparative metrics', () => {
+      // Add multiple customers for comparison
+      const customer1 = createTestCustomer({
+        id: 'CUST-001',
+        mrr: 1000,
+        channels: ['Booking.com', 'Expedia'],
+      });
+      const customer2 = createTestCustomer({
+        id: 'CUST-002',
+        mrr: 3000,
+        channels: ['Booking.com'],
+      });
+      mockRepository.setCustomer(customer1);
+      mockRepository.setCustomer(customer2);
+
+      const result = useCase.execute({ customerId: 'CUST-001' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const metrics = result.value.comparativeMetrics;
+        expect(metrics).toBeDefined();
+        expect(typeof metrics.healthScoreVsAverage).toBe('number');
+        expect(typeof metrics.mrrVsAverage).toBe('number');
+        expect(typeof metrics.channelCountVsAverage).toBe('number');
+        expect(metrics.percentileRank).toBeGreaterThanOrEqual(0);
+        expect(metrics.percentileRank).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('includes timeline data', () => {
+      const customer = createTestCustomer({
+        id: 'CUST-001',
+        createdDate: new Date('2023-01-01T00:00:00Z'),
+        latestLogin: new Date('2024-01-10T10:00:00Z'),
+      });
+      mockRepository.setCustomer(customer);
+
+      const result = useCase.execute({ customerId: 'CUST-001' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const timeline = result.value.timeline;
+        expect(timeline).toBeDefined();
+        expect(timeline.createdDate).toBe('2023-01-01T00:00:00.000Z');
+        expect(timeline.daysSinceCreation).toBeGreaterThan(0);
+        expect(timeline.lastLoginDate).toBe('2024-01-10T10:00:00.000Z');
+        expect(timeline.daysSinceLastLogin).toBeGreaterThan(0);
+        expect(['new', 'established', 'veteran']).toContain(timeline.accountAgeCategory);
+      }
+    });
+
+    it('categorizes account age correctly', () => {
+      // New account (less than 30 days old)
+      const newCustomer = createTestCustomer({
+        id: 'NEW-001',
+        createdDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+        latestLogin: new Date(),
+      });
+      mockRepository.setCustomer(newCustomer);
+
+      const newResult = useCase.execute({ customerId: 'NEW-001' });
+      expect(newResult.success).toBe(true);
+      if (newResult.success) {
+        expect(newResult.value.timeline.accountAgeCategory).toBe('new');
+      }
+
+      // Veteran account (more than 365 days old)
+      const veteranCustomer = createTestCustomer({
+        id: 'VET-001',
+        createdDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000), // 400 days ago
+        latestLogin: new Date(),
+      });
+      mockRepository.setCustomer(veteranCustomer);
+
+      const vetResult = useCase.execute({ customerId: 'VET-001' });
+      expect(vetResult.success).toBe(true);
+      if (vetResult.success) {
+        expect(vetResult.value.timeline.accountAgeCategory).toBe('veteran');
       }
     });
   });

@@ -1,5 +1,5 @@
 import { type Customer } from '@domain/entities';
-import { type CustomerReadRepository, type SearchCriteria } from '@domain/repositories';
+import { type CustomerReadRepository } from '@domain/repositories';
 import { type HealthScoreCalculator } from '@domain/services';
 import { type HealthScore, HealthScoreClassification } from '@domain/value-objects';
 import { type CustomerSummaryDTO } from '@application/dtos';
@@ -7,18 +7,51 @@ import { CustomerMapper } from '@application/mappers';
 import { type Result } from '@shared/types';
 
 /**
+ * Sort field options
+ */
+export type SortField = 'healthScore' | 'mrr' | 'name' | 'lastLogin';
+
+/**
+ * Sort order options
+ */
+export type SortOrder = 'asc' | 'desc';
+
+/**
+ * Applied filter for tracking active filters
+ */
+export interface AppliedFilter {
+  field: string;
+  value: string | string[];
+}
+
+/**
  * Search input parameters
  */
 export interface SearchCustomersInput {
+  /** Exact match on customer ID */
+  customerId?: string;
+  /** Text search (partial match on ID or account owner) */
   query?: string;
+  /** Filter by status */
   status?: 'active' | 'inactive';
+  /** Filter by health classification */
   healthStatus?: 'healthy' | 'at-risk' | 'critical';
+  /** Filter by country */
   country?: string;
+  /** Filter by account type */
   accountType?: 'Pro' | 'Starter';
+  /** Filter by channels (any match) */
   channels?: string[];
+  /** Filter by languages (any match) */
   languages?: string[];
-  limit?: number;
-  offset?: number;
+  /** Sort field */
+  sortBy?: SortField;
+  /** Sort order */
+  sortOrder?: SortOrder;
+  /** Page number (1-based) */
+  page?: number;
+  /** Page size (default 20, max 100) */
+  pageSize?: number;
 }
 
 /**
@@ -26,8 +59,11 @@ export interface SearchCustomersInput {
  */
 export interface SearchCustomersOutput {
   customers: CustomerSummaryDTO[];
-  total: number;
-  hasMore: boolean;
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  appliedFilters: AppliedFilter[];
 }
 
 /**
@@ -35,6 +71,9 @@ export interface SearchCustomersOutput {
  * Provides flexible search with multiple filter criteria.
  */
 export class SearchCustomersUseCase {
+  private static readonly DEFAULT_PAGE_SIZE = 20;
+  private static readonly MAX_PAGE_SIZE = 100;
+
   private readonly customerReadRepository: CustomerReadRepository;
   private readonly healthScoreCalculator: HealthScoreCalculator;
 
@@ -48,44 +87,43 @@ export class SearchCustomersUseCase {
    */
   execute(input: SearchCustomersInput): Result<SearchCustomersOutput, string> {
     try {
-      // Convert input to search criteria
-      const criteria = this.buildSearchCriteria(input);
-
-      // Get all customers (we'll filter in repository)
+      // Get all customers
       const allCustomers = this.customerReadRepository.getAll();
 
       // Calculate health scores for all customers
       const healthScores = this.calculateAllHealthScores(allCustomers);
 
       // Apply filters
-      let filteredCustomers = this.customerReadRepository.search(criteria);
+      let filteredCustomers = this.applyFilters(allCustomers, input, healthScores);
 
-      // Apply health status filter (not handled by repository)
-      if (input.healthStatus) {
-        const targetClassification = this.mapHealthStatus(input.healthStatus);
-        filteredCustomers = filteredCustomers.filter((customer) => {
-          const score = healthScores.get(customer.id);
-          return score && score.getClassification() === targetClassification;
-        });
-      }
+      // Apply sorting
+      filteredCustomers = this.applySorting(filteredCustomers, healthScores, input.sortBy, input.sortOrder);
 
-      // Get total count before pagination
-      const total = filteredCustomers.length;
+      // Calculate pagination
+      const pageSize = Math.min(input.pageSize ?? SearchCustomersUseCase.DEFAULT_PAGE_SIZE, SearchCustomersUseCase.MAX_PAGE_SIZE);
+      const page = Math.max(input.page ?? 1, 1);
+      const totalCount = filteredCustomers.length;
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const offset = (page - 1) * pageSize;
 
       // Apply pagination
-      const limit = input.limit ?? 50;
-      const offset = input.offset ?? 0;
-      const paginatedCustomers = filteredCustomers.slice(offset, offset + limit);
+      const paginatedCustomers = filteredCustomers.slice(offset, offset + pageSize);
 
       // Map to DTOs
       const customerDTOs = CustomerMapper.toSummaryDTOList(paginatedCustomers, healthScores);
+
+      // Build applied filters list
+      const appliedFilters = this.buildAppliedFilters(input);
 
       return {
         success: true,
         value: {
           customers: customerDTOs,
-          total,
-          hasMore: offset + limit < total,
+          totalCount,
+          page,
+          pageSize,
+          totalPages,
+          appliedFilters,
         },
       };
     } catch (error) {
@@ -97,36 +135,156 @@ export class SearchCustomersUseCase {
   }
 
   /**
-   * Build search criteria from input
+   * Apply all filters to customer list
    */
-  private buildSearchCriteria(input: SearchCustomersInput): SearchCriteria {
-    const criteria: SearchCriteria = {};
+  private applyFilters(
+    customers: Customer[],
+    input: SearchCustomersInput,
+    healthScores: Map<string, HealthScore>
+  ): Customer[] {
+    let result = customers;
 
+    // Exact customer ID match (returns single result or empty)
+    if (input.customerId) {
+      result = result.filter((c) => c.id === input.customerId);
+      return result; // Short-circuit if searching by exact ID
+    }
+
+    // Text query (partial match on ID or account owner)
     if (input.query) {
-      criteria.query = input.query;
+      const query = input.query.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.id.toLowerCase().includes(query) ||
+          c.accountOwner.toLowerCase().includes(query)
+      );
     }
 
+    // Status filter
     if (input.status) {
-      criteria.status = input.status === 'active' ? 'Active Customer' : 'Inactive Customer';
+      const isActive = input.status === 'active';
+      result = result.filter((c) => c.isActive() === isActive);
     }
 
+    // Country filter
     if (input.country) {
-      criteria.country = input.country;
+      result = result.filter((c) => c.billingCountry === input.country);
     }
 
+    // Account type filter
     if (input.accountType) {
-      criteria.accountType = input.accountType;
+      result = result.filter((c) => c.accountType === input.accountType);
     }
 
+    // Channels filter (any match)
     if (input.channels && input.channels.length > 0) {
-      criteria.channels = input.channels;
+      result = result.filter((c) =>
+        input.channels!.some((channel) => c.channels.includes(channel))
+      );
     }
 
+    // Languages filter (any match)
     if (input.languages && input.languages.length > 0) {
-      criteria.languages = input.languages;
+      result = result.filter((c) =>
+        input.languages!.some((lang) => c.languages.includes(lang))
+      );
     }
 
-    return criteria;
+    // Health status filter
+    if (input.healthStatus) {
+      const targetClassification = this.mapHealthStatus(input.healthStatus);
+      result = result.filter((customer) => {
+        const score = healthScores.get(customer.id);
+        return score && score.getClassification() === targetClassification;
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Apply sorting to customer list
+   */
+  private applySorting(
+    customers: Customer[],
+    healthScores: Map<string, HealthScore>,
+    sortBy?: SortField,
+    sortOrder?: SortOrder
+  ): Customer[] {
+    const order = sortOrder ?? 'desc';
+    const multiplier = order === 'asc' ? 1 : -1;
+
+    const sorted = [...customers];
+
+    switch (sortBy) {
+      case 'healthScore':
+        sorted.sort((a, b) => {
+          const scoreA = healthScores.get(a.id)?.value ?? 0;
+          const scoreB = healthScores.get(b.id)?.value ?? 0;
+          return (scoreA - scoreB) * multiplier;
+        });
+        break;
+
+      case 'mrr':
+        sorted.sort((a, b) => (a.mrr - b.mrr) * multiplier);
+        break;
+
+      case 'name':
+        sorted.sort((a, b) =>
+          a.accountOwner.localeCompare(b.accountOwner) * multiplier
+        );
+        break;
+
+      case 'lastLogin':
+        sorted.sort((a, b) =>
+          (a.latestLogin.getTime() - b.latestLogin.getTime()) * multiplier
+        );
+        break;
+
+      default:
+        // Default: sort by health score descending (show at-risk first)
+        sorted.sort((a, b) => {
+          const scoreA = healthScores.get(a.id)?.value ?? 0;
+          const scoreB = healthScores.get(b.id)?.value ?? 0;
+          return scoreA - scoreB; // Ascending by default to show at-risk first
+        });
+    }
+
+    return sorted;
+  }
+
+  /**
+   * Build list of applied filters for UI display
+   */
+  private buildAppliedFilters(input: SearchCustomersInput): AppliedFilter[] {
+    const filters: AppliedFilter[] = [];
+
+    if (input.customerId) {
+      filters.push({ field: 'customerId', value: input.customerId });
+    }
+    if (input.query) {
+      filters.push({ field: 'query', value: input.query });
+    }
+    if (input.status) {
+      filters.push({ field: 'status', value: input.status });
+    }
+    if (input.healthStatus) {
+      filters.push({ field: 'healthStatus', value: input.healthStatus });
+    }
+    if (input.country) {
+      filters.push({ field: 'country', value: input.country });
+    }
+    if (input.accountType) {
+      filters.push({ field: 'accountType', value: input.accountType });
+    }
+    if (input.channels && input.channels.length > 0) {
+      filters.push({ field: 'channels', value: input.channels });
+    }
+    if (input.languages && input.languages.length > 0) {
+      filters.push({ field: 'languages', value: input.languages });
+    }
+
+    return filters;
   }
 
   /**

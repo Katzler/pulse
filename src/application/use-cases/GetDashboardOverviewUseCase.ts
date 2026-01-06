@@ -7,7 +7,7 @@ import { MetricsMapper } from '@application/mappers';
 import { type Result } from '@shared/types';
 
 /**
- * Status distribution data
+ * Status distribution data with percentage
  */
 export interface StatusData {
   status: string;
@@ -16,11 +16,41 @@ export interface StatusData {
 }
 
 /**
+ * Channel distribution with percentage
+ */
+export interface ChannelData {
+  channel: string;
+  customerCount: number;
+  percentage: number;
+}
+
+/**
+ * Property type distribution with percentage
+ */
+export interface PropertyTypeData {
+  propertyType: string;
+  customerCount: number;
+  percentage: number;
+}
+
+/**
+ * MRR by country data
+ */
+export interface CountryMrrData {
+  country: string;
+  mrr: number;
+  customerCount: number;
+}
+
+/**
  * Output from the dashboard overview use case
  */
 export interface GetDashboardOverviewOutput {
   metrics: DashboardMetricsDTO;
   customersByStatus: StatusData[];
+  customersByChannel: ChannelData[];
+  customersByPropertyType: PropertyTypeData[];
+  mrrByCountry: CountryMrrData[];
   atRiskCustomers: Array<{
     id: string;
     accountOwner: string;
@@ -70,8 +100,11 @@ export class GetDashboardOverviewUseCase {
         customers
       );
 
-      // Calculate status distribution
+      // Calculate distributions with percentages
       const customersByStatus = this.calculateStatusDistribution(customers);
+      const customersByChannel = this.calculateChannelDistribution(customers);
+      const customersByPropertyType = this.calculatePropertyTypeDistribution(customers);
+      const mrrByCountry = this.calculateMrrByCountry(customers);
 
       // Get at-risk customers (sorted by health score ascending)
       const atRiskCustomers = this.getAtRiskCustomers(customers, healthScores);
@@ -81,6 +114,9 @@ export class GetDashboardOverviewUseCase {
         value: {
           metrics,
           customersByStatus,
+          customersByChannel,
+          customersByPropertyType,
+          mrrByCountry,
           atRiskCustomers,
         },
       };
@@ -132,6 +168,83 @@ export class GetDashboardOverviewUseCase {
         percentage: Math.round((inactiveCount / total) * 100),
       },
     ];
+  }
+
+  /**
+   * Calculate channel distribution with percentages
+   */
+  private calculateChannelDistribution(customers: Customer[]): ChannelData[] {
+    const total = customers.length;
+    if (total === 0) {
+      return [];
+    }
+
+    const channelCounts = new Map<string, number>();
+
+    for (const customer of customers) {
+      for (const channel of customer.channels) {
+        const count = channelCounts.get(channel) ?? 0;
+        channelCounts.set(channel, count + 1);
+      }
+    }
+
+    return Array.from(channelCounts.entries())
+      .map(([channel, customerCount]) => ({
+        channel,
+        customerCount,
+        percentage: Math.round((customerCount / total) * 100),
+      }))
+      .sort((a, b) => b.customerCount - a.customerCount);
+  }
+
+  /**
+   * Calculate property type distribution with percentages
+   */
+  private calculatePropertyTypeDistribution(customers: Customer[]): PropertyTypeData[] {
+    const total = customers.length;
+    if (total === 0) {
+      return [];
+    }
+
+    const typeCounts = new Map<string, number>();
+
+    for (const customer of customers) {
+      const propertyType = customer.propertyType || 'Unknown';
+      const count = typeCounts.get(propertyType) ?? 0;
+      typeCounts.set(propertyType, count + 1);
+    }
+
+    return Array.from(typeCounts.entries())
+      .map(([propertyType, customerCount]) => ({
+        propertyType,
+        customerCount,
+        percentage: Math.round((customerCount / total) * 100),
+      }))
+      .sort((a, b) => b.customerCount - a.customerCount);
+  }
+
+  /**
+   * Calculate MRR totals by country
+   */
+  private calculateMrrByCountry(customers: Customer[]): CountryMrrData[] {
+    const countryData = new Map<string, { mrr: number; count: number }>();
+
+    for (const customer of customers) {
+      const country = customer.billingCountry || 'Unknown';
+      const existing = countryData.get(country) ?? { mrr: 0, count: 0 };
+      countryData.set(country, {
+        mrr: existing.mrr + customer.mrr,
+        count: existing.count + 1,
+      });
+    }
+
+    return Array.from(countryData.entries())
+      .map(([country, data]) => ({
+        country,
+        mrr: data.mrr,
+        customerCount: data.count,
+      }))
+      .sort((a, b) => b.mrr - a.mrr);
   }
 
   /**

@@ -111,8 +111,9 @@ describe('SearchCustomersUseCase', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.value.customers).toHaveLength(2);
-        expect(result.value.total).toBe(2);
-        expect(result.value.hasMore).toBe(false);
+        expect(result.value.totalCount).toBe(2);
+        expect(result.value.page).toBe(1);
+        expect(result.value.totalPages).toBe(1);
       }
     });
 
@@ -178,33 +179,37 @@ describe('SearchCustomersUseCase', () => {
     });
 
     it('applies pagination', () => {
-      const customers = Array.from({ length: 10 }, (_, i) =>
+      const customers = Array.from({ length: 25 }, (_, i) =>
         createTestCustomer({ id: `CUST-${String(i + 1).padStart(3, '0')}` })
       );
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ limit: 3, offset: 0 });
+      // Default page size is 20, request page 1
+      const result = useCase.execute({ page: 1, pageSize: 10 });
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.value.customers).toHaveLength(3);
-        expect(result.value.total).toBe(10);
-        expect(result.value.hasMore).toBe(true);
+        expect(result.value.customers).toHaveLength(10);
+        expect(result.value.totalCount).toBe(25);
+        expect(result.value.page).toBe(1);
+        expect(result.value.pageSize).toBe(10);
+        expect(result.value.totalPages).toBe(3);
       }
     });
 
-    it('indicates no more results when at end', () => {
-      const customers = [
-        createTestCustomer({ id: 'CUST-001' }),
-        createTestCustomer({ id: 'CUST-002' }),
-      ];
+    it('returns correct page when requesting later pages', () => {
+      const customers = Array.from({ length: 25 }, (_, i) =>
+        createTestCustomer({ id: `CUST-${String(i + 1).padStart(3, '0')}` })
+      );
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ limit: 10 });
+      const result = useCase.execute({ page: 3, pageSize: 10 });
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.value.hasMore).toBe(false);
+        expect(result.value.customers).toHaveLength(5); // Last page has 5 items
+        expect(result.value.page).toBe(3);
+        expect(result.value.totalPages).toBe(3);
       }
     });
 
@@ -216,7 +221,8 @@ describe('SearchCustomersUseCase', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.value.customers).toHaveLength(0);
-        expect(result.value.total).toBe(0);
+        expect(result.value.totalCount).toBe(0);
+        expect(result.value.totalPages).toBe(0);
       }
     });
 
@@ -230,6 +236,103 @@ describe('SearchCustomersUseCase', () => {
       if (result.success) {
         expect(result.value.customers[0].healthScore).toBeGreaterThanOrEqual(0);
         expect(result.value.customers[0].healthScore).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('filters by exact customer ID', () => {
+      const customers = [
+        createTestCustomer({ id: 'CUST-001', accountOwner: 'John' }),
+        createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane' }),
+      ];
+      mockRepository.setCustomers(customers);
+
+      const result = useCase.execute({ customerId: 'CUST-001' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.customers).toHaveLength(1);
+        expect(result.value.customers[0].id).toBe('CUST-001');
+      }
+    });
+
+    it('sorts by MRR descending', () => {
+      const customers = [
+        createTestCustomer({ id: 'LOW-MRR', mrr: 100 }),
+        createTestCustomer({ id: 'HIGH-MRR', mrr: 5000 }),
+        createTestCustomer({ id: 'MED-MRR', mrr: 1000 }),
+      ];
+      mockRepository.setCustomers(customers);
+
+      const result = useCase.execute({ sortBy: 'mrr', sortOrder: 'desc' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.customers[0].id).toBe('HIGH-MRR');
+        expect(result.value.customers[1].id).toBe('MED-MRR');
+        expect(result.value.customers[2].id).toBe('LOW-MRR');
+      }
+    });
+
+    it('sorts by name ascending', () => {
+      const customers = [
+        createTestCustomer({ id: 'C1', accountOwner: 'Zack' }),
+        createTestCustomer({ id: 'C2', accountOwner: 'Alice' }),
+        createTestCustomer({ id: 'C3', accountOwner: 'Mike' }),
+      ];
+      mockRepository.setCustomers(customers);
+
+      const result = useCase.execute({ sortBy: 'name', sortOrder: 'asc' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.customers[0].accountOwner).toBe('Alice');
+        expect(result.value.customers[1].accountOwner).toBe('Mike');
+        expect(result.value.customers[2].accountOwner).toBe('Zack');
+      }
+    });
+
+    it('returns applied filters list', () => {
+      const customers = [createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden' })];
+      mockRepository.setCustomers(customers);
+
+      const result = useCase.execute({ country: 'Sweden', status: 'active' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.appliedFilters).toContainEqual({ field: 'country', value: 'Sweden' });
+        expect(result.value.appliedFilters).toContainEqual({ field: 'status', value: 'active' });
+      }
+    });
+
+    it('filters by health status', () => {
+      // Create customers with different health levels
+      const healthyCustomer = createTestCustomer({
+        id: 'HEALTHY-001',
+        status: CustomerStatus.Active,
+        latestLogin: new Date(),
+        channels: ['Booking.com', 'Expedia', 'Airbnb'],
+        accountType: AccountType.Pro,
+        mrr: 5000,
+      });
+      const atRiskCustomer = createTestCustomer({
+        id: 'ATRISK-001',
+        status: CustomerStatus.Inactive,
+        latestLogin: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+        channels: ['Booking.com'],
+        accountType: AccountType.Starter,
+        mrr: 100,
+      });
+      mockRepository.setCustomers([healthyCustomer, atRiskCustomer]);
+
+      const result = useCase.execute({ healthStatus: 'healthy' });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Should only return the healthy customer
+        expect(result.value.customers.length).toBeGreaterThanOrEqual(1);
+        for (const customer of result.value.customers) {
+          expect(customer.healthClassification).toBe('healthy');
+        }
       }
     });
   });
