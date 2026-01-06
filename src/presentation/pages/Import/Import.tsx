@@ -2,12 +2,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HealthScoreCalculator } from '@domain/services';
+import { HealthScoreClassification } from '@domain/value-objects';
+import type { CustomerSummaryDTO } from '@application/dtos';
 import type { ImportCustomersOutput, ImportRowError } from '@application/use-cases';
 import { ImportCustomersUseCase } from '@application/use-cases';
 import { CsvParser } from '@infrastructure/csv';
 import { InMemoryCustomerRepository } from '@infrastructure/repositories';
 import { Button, FileUpload } from '@presentation/components/common';
-import { useUIStore } from '@presentation/stores';
+import { useCustomerStore, useUIStore } from '@presentation/stores';
 import type { RawCustomerRecord } from '@shared/types';
 
 /**
@@ -115,12 +117,13 @@ function mapToImportRecord(record: RawCustomerRecord) {
 export function Import() {
   const navigate = useNavigate();
   const addToast = useUIStore((state) => state.addToast);
+  const setCustomers = useCustomerStore((state) => state.setCustomers);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  // Create instances for processing
+  // Create instances for processing - repository needs to be accessible for post-import queries
   const csvParser = useMemo(() => new CsvParser(), []);
   const repository = useMemo(() => new InMemoryCustomerRepository(), []);
   const healthCalculator = useMemo(() => new HealthScoreCalculator(), []);
@@ -128,6 +131,44 @@ export function Import() {
     () => new ImportCustomersUseCase(repository, healthCalculator),
     [repository, healthCalculator]
   );
+
+  /**
+   * Convert repository customers to CustomerSummaryDTO for the store
+   */
+  const updateCustomerStore = useCallback(() => {
+    const customers = repository.getAll();
+
+    const summaries: CustomerSummaryDTO[] = customers.map((customer) => {
+      // Calculate health score for this customer
+      const healthResult = healthCalculator.calculate(customer);
+      const healthScore = healthResult.success ? healthResult.value.value : 0;
+      const classification = healthResult.success
+        ? healthResult.value.getClassification()
+        : HealthScoreClassification.Critical;
+
+      const classificationString =
+        classification === HealthScoreClassification.Healthy
+          ? 'healthy'
+          : classification === HealthScoreClassification.AtRisk
+            ? 'at-risk'
+            : 'critical';
+
+      return {
+        id: customer.id,
+        accountOwner: customer.accountOwner,
+        status: customer.isActive() ? 'Active Customer' : 'Inactive Customer',
+        accountType: customer.accountType,
+        healthScore,
+        healthClassification: classificationString,
+        mrr: customer.mrr,
+        channelCount: customer.channels.length,
+        latestLogin: customer.latestLogin.toISOString(),
+        billingCountry: customer.billingCountry,
+      };
+    });
+
+    setCustomers(summaries);
+  }, [repository, healthCalculator, setCustomers]);
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
@@ -198,6 +239,9 @@ export function Import() {
       });
 
       if (result.importedCount > 0) {
+        // Update the customer store with imported data
+        updateCustomerStore();
+
         addToast({
           type: result.errorCount > 0 ? 'warning' : 'success',
           title: result.errorCount > 0 ? 'Import Completed with Warnings' : 'Import Successful',
@@ -227,7 +271,7 @@ export function Import() {
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedFile, csvParser, importUseCase, addToast]);
+  }, [selectedFile, csvParser, importUseCase, addToast, updateCustomerStore]);
 
   const handleReset = useCallback(() => {
     setSelectedFile(null);

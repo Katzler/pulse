@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useUIStore } from '@presentation/stores';
+import { useCustomerStore, useUIStore } from '@presentation/stores';
 
 import { Import } from '../Import';
 
@@ -47,6 +47,16 @@ vi.mock('@infrastructure/repositories', () => ({
       success: true,
       value: { successCount: 1, failedCount: 0, errors: [] },
     });
+    getAll = vi.fn().mockReturnValue([]);
+  },
+}));
+
+// Mock HealthScoreClassification enum
+vi.mock('@domain/value-objects', () => ({
+  HealthScoreClassification: {
+    Healthy: 'healthy',
+    AtRisk: 'at-risk',
+    Critical: 'critical',
   },
 }));
 
@@ -62,6 +72,7 @@ describe('Import', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useUIStore.setState({ toasts: [] });
+    useCustomerStore.setState({ customers: [] });
 
     // Setup default successful mock responses
     mockParseFile.mockResolvedValue({
