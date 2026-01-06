@@ -16,6 +16,16 @@ export { ErrorMessage, type ErrorMessageProps } from './ErrorMessage';
 export { FileUpload, type FileUploadProps } from './FileUpload';
 export { LoadingSkeleton, type LoadingSkeletonProps } from './LoadingSkeleton';
 export { LoadingSpinner, type LoadingSpinnerProps } from './LoadingSpinner';
+export {
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  DollarIcon,
+  HeartPulseIcon,
+  MetricCard,
+  type MetricCardProps,
+  type MetricTrend,
+  UsersIcon,
+} from './MetricCard';
 export { Toast, type ToastProps } from './Toast';
 export { ToastContainer, type ToastContainerProps } from './ToastContainer';
 export { Tooltip, type TooltipProps } from './Tooltip';

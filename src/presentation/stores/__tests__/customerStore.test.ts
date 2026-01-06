@@ -48,6 +48,8 @@ describe('customerStore', () => {
           healthClassification: 'healthy',
           mrr: 1000,
           channelCount: 3,
+          latestLogin: '2024-01-15T10:30:00Z',
+          billingCountry: 'United States',
         },
       ];
 
@@ -201,6 +203,8 @@ describe('customerStore', () => {
             healthClassification: 'healthy',
             mrr: 1000,
             channelCount: 2,
+            latestLogin: '2024-01-10T14:00:00Z',
+            billingCountry: 'Germany',
           },
         ]);
         useCustomerStore.getState().setSearchCriteria({ query: 'test', limit: 10 });

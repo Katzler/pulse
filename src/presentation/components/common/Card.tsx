@@ -7,6 +7,7 @@ export interface CardProps {
   variant?: 'default' | 'outlined';
   padding?: 'none' | 'small' | 'medium' | 'large';
   className?: string;
+  'data-testid'?: string;
 }
 
 const paddingStyles = {
@@ -31,6 +32,7 @@ export function Card({
   variant = 'default',
   padding = 'medium',
   className = '',
+  'data-testid': testId,
 }: CardProps) {
   return (
     <div
@@ -39,6 +41,7 @@ export function Card({
         ${variantStyles[variant]}
         ${className}
       `}
+      data-testid={testId}
     >
       {title && (
         <div className="border-b border-gray-200 px-4 py-3">

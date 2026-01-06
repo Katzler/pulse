@@ -18,6 +18,7 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /customers/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /import/i })).toBeInTheDocument();
+    // Navigation has Import link, Dashboard empty state also has Import button/link
+    expect(screen.getAllByRole('link', { name: /import/i }).length).toBeGreaterThanOrEqual(1);
   });
 });

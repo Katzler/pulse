@@ -43,6 +43,8 @@ export const CustomerMapper = {
       healthClassification: healthScore.getClassification(),
       mrr: customer.mrr,
       channelCount: customer.channelCount,
+      latestLogin: customer.latestLogin.toISOString(),
+      billingCountry: customer.billingCountry,
     };
   },
 

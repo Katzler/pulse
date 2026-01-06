@@ -56,4 +56,8 @@ export interface CustomerSummaryDTO {
   mrr: number;
   /** Number of connected channels */
   channelCount: number;
+  /** Latest login as ISO date string */
+  latestLogin: string;
+  /** Billing country name */
+  billingCountry: string;
 }
