@@ -1,9 +1,10 @@
-import type { JSX } from 'react';
+import { type JSX, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import type {
   ComparativeMetricsDTO,
   CustomerDTO,
+  CustomerSummaryDTO,
   CustomerTimelineDTO,
   HealthScoreBreakdownDTO,
 } from '@application/dtos';
@@ -604,6 +605,30 @@ function CustomerDetailContent({
 }
 
 /**
+ * Convert CustomerSummaryDTO to CustomerDTO for display
+ * Some fields are not available in summary, so we use defaults
+ */
+function summaryToDto(summary: CustomerSummaryDTO): CustomerDTO {
+  return {
+    id: summary.id,
+    accountOwner: summary.accountOwner,
+    latestLogin: summary.latestLogin,
+    createdDate: '', // Not available in summary
+    billingCountry: summary.billingCountry,
+    accountType: summary.accountType,
+    languages: [], // Not available in summary
+    status: summary.status,
+    accountStatus: '', // Not available in summary
+    propertyType: '', // Not available in summary
+    mrr: summary.mrr,
+    currency: 'USD', // Default currency
+    channels: [], // Not available in summary - only count
+    healthScore: summary.healthScore,
+    healthClassification: summary.healthClassification,
+  };
+}
+
+/**
  * Customer detail page - shows full customer information.
  *
  * Features:
@@ -615,11 +640,13 @@ function CustomerDetailContent({
  */
 export function CustomerDetail(): JSX.Element {
   const { customerId } = useParams<{ customerId: string }>();
-  const selectedCustomer = useCustomerStore((state) => state.selectedCustomer);
+  const customers = useCustomerStore((state) => state.customers);
 
-  // In a real app, we would fetch customer data based on customerId
-  // For now, we use the selected customer from the store
-  // This will be connected to the GetCustomerDetailsUseCase in a later task
+  // Find the customer from the customers array
+  const customer = useMemo(() => {
+    const summary = customers.find((c) => c.id === customerId);
+    return summary ? summaryToDto(summary) : null;
+  }, [customers, customerId]);
 
   const isLoading = false; // Will be connected to data fetching later
 
@@ -632,8 +659,7 @@ export function CustomerDetail(): JSX.Element {
   }
 
   // Check if we have customer data
-  // In the real implementation, we would fetch by customerId
-  if (!selectedCustomer || selectedCustomer.id !== customerId) {
+  if (!customer) {
     return (
       <PageErrorBoundary pageName="Customer Detail">
         <CustomerNotFound customerId={customerId} />
@@ -647,7 +673,7 @@ export function CustomerDetail(): JSX.Element {
   return (
     <PageErrorBoundary pageName="Customer Detail">
       <CustomerDetailContent
-        customer={selectedCustomer}
+        customer={customer}
         healthBreakdown={null}
         comparativeMetrics={null}
         timeline={null}

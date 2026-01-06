@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
+import type { CustomerSummaryDTO, DashboardMetricsDTO, DistributionItem } from '@application/dtos';
 import {
   ChannelAdoptionChart,
   HealthDistributionChart,
@@ -31,6 +33,62 @@ function getHealthScoreColor(score: number): 'green' | 'orange' | 'red' {
   if (score >= 70) return 'green';
   if (score >= 30) return 'orange';
   return 'red';
+}
+
+/**
+ * Compute dashboard metrics from customer summaries.
+ * Used as a fallback when dashboardMetrics is not set in the store.
+ */
+function computeMetricsFromCustomers(customers: CustomerSummaryDTO[]): DashboardMetricsDTO {
+  let activeCount = 0;
+  let totalMrr = 0;
+  let totalHealthScore = 0;
+  const healthDistribution = { healthy: 0, atRisk: 0, critical: 0 };
+  const countryMap = new Map<string, { count: number; mrr: number }>();
+
+  for (const customer of customers) {
+    // Count active customers
+    if (customer.status === 'Active Customer') {
+      activeCount++;
+    }
+
+    // Sum MRR and health scores
+    totalMrr += customer.mrr;
+    totalHealthScore += customer.healthScore;
+
+    // Health distribution
+    if (customer.healthClassification === 'healthy') {
+      healthDistribution.healthy++;
+    } else if (customer.healthClassification === 'at-risk') {
+      healthDistribution.atRisk++;
+    } else {
+      healthDistribution.critical++;
+    }
+
+    // Country distribution
+    const countryData = countryMap.get(customer.billingCountry) || { count: 0, mrr: 0 };
+    countryData.count++;
+    countryData.mrr += customer.mrr;
+    countryMap.set(customer.billingCountry, countryData);
+  }
+
+  // Build country distribution array
+  const countryDistribution: DistributionItem[] = Array.from(countryMap.entries())
+    .map(([name, data]) => ({ name, count: data.count, mrr: data.mrr }))
+    .sort((a, b) => (b.mrr || 0) - (a.mrr || 0));
+
+  return {
+    totalCustomers: customers.length,
+    activeCustomers: activeCount,
+    inactiveCustomers: customers.length - activeCount,
+    averageHealthScore: customers.length > 0 ? totalHealthScore / customers.length : 0,
+    totalMrr,
+    healthDistribution,
+    countryDistribution,
+    // These are empty when computed from summaries (summaries don't have channel/property data)
+    channelDistribution: [],
+    propertyTypeDistribution: [],
+  };
 }
 
 /**
@@ -158,11 +216,23 @@ function DashboardHeader({ lastUpdated }: { lastUpdated: Date | null }) {
  * Main dashboard content with metrics and charts
  */
 function DashboardContent() {
-  const dashboardMetrics = useCustomerStore((state) => state.dashboardMetrics);
+  const storedMetrics = useCustomerStore((state) => state.dashboardMetrics);
   const customers = useCustomerStore((state) => state.customers);
   const lastUpdated = useCustomerStore((state) => state.lastUpdated);
 
-  // Show empty state if no metrics loaded
+  // Compute metrics from customers as fallback if dashboardMetrics is not set
+  const dashboardMetrics = useMemo(() => {
+    if (storedMetrics) {
+      return storedMetrics;
+    }
+    // Fallback: compute from customers array if available
+    if (customers.length > 0) {
+      return computeMetricsFromCustomers(customers);
+    }
+    return null;
+  }, [storedMetrics, customers]);
+
+  // Show empty state if no data available
   if (!dashboardMetrics) {
     return <DashboardEmptyState />;
   }

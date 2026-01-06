@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 
 import { HealthScoreCalculator } from '@domain/services';
 import { HealthScoreClassification } from '@domain/value-objects';
-import type { CustomerSummaryDTO } from '@application/dtos';
+import type {
+  CustomerSummaryDTO,
+  DashboardMetricsDTO,
+  DistributionItem,
+  HealthDistributionDTO,
+} from '@application/dtos';
 import type { ImportCustomersOutput, ImportRowError } from '@application/use-cases';
 import { ImportCustomersUseCase } from '@application/use-cases';
 import { CsvParser } from '@infrastructure/csv';
@@ -118,6 +123,7 @@ export function Import() {
   const navigate = useNavigate();
   const addToast = useUIStore((state) => state.addToast);
   const setCustomers = useCustomerStore((state) => state.setCustomers);
+  const setDashboardMetrics = useCustomerStore((state) => state.setDashboardMetrics);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -134,9 +140,19 @@ export function Import() {
 
   /**
    * Convert repository customers to CustomerSummaryDTO for the store
+   * and compute dashboard metrics
    */
   const updateCustomerStore = useCallback(() => {
     const customers = repository.getAll();
+
+    // Track metrics while building summaries
+    let activeCount = 0;
+    let totalMrr = 0;
+    let totalHealthScore = 0;
+    const healthDistribution: HealthDistributionDTO = { healthy: 0, atRisk: 0, critical: 0 };
+    const countryMap = new Map<string, { count: number; mrr: number }>();
+    const channelMap = new Map<string, number>();
+    const propertyTypeMap = new Map<string, number>();
 
     const summaries: CustomerSummaryDTO[] = customers.map((customer) => {
       // Calculate health score for this customer
@@ -153,6 +169,34 @@ export function Import() {
             ? 'at-risk'
             : 'critical';
 
+      // Update metrics
+      if (customer.isActive()) activeCount++;
+      totalMrr += customer.mrr;
+      totalHealthScore += healthScore;
+
+      // Health distribution
+      if (classification === HealthScoreClassification.Healthy) {
+        healthDistribution.healthy++;
+      } else if (classification === HealthScoreClassification.AtRisk) {
+        healthDistribution.atRisk++;
+      } else {
+        healthDistribution.critical++;
+      }
+
+      // Country distribution
+      const countryData = countryMap.get(customer.billingCountry) || { count: 0, mrr: 0 };
+      countryData.count++;
+      countryData.mrr += customer.mrr;
+      countryMap.set(customer.billingCountry, countryData);
+
+      // Channel distribution (count each channel)
+      for (const channel of customer.channels) {
+        channelMap.set(channel, (channelMap.get(channel) || 0) + 1);
+      }
+
+      // Property type distribution
+      propertyTypeMap.set(customer.propertyType, (propertyTypeMap.get(customer.propertyType) || 0) + 1);
+
       return {
         id: customer.id,
         accountOwner: customer.accountOwner,
@@ -167,8 +211,35 @@ export function Import() {
       };
     });
 
+    // Build distribution arrays
+    const countryDistribution: DistributionItem[] = Array.from(countryMap.entries())
+      .map(([name, data]) => ({ name, count: data.count, mrr: data.mrr }))
+      .sort((a, b) => (b.mrr || 0) - (a.mrr || 0));
+
+    const channelDistribution: DistributionItem[] = Array.from(channelMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const propertyTypeDistribution: DistributionItem[] = Array.from(propertyTypeMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+
+    // Build dashboard metrics
+    const dashboardMetrics: DashboardMetricsDTO = {
+      totalCustomers: customers.length,
+      activeCustomers: activeCount,
+      inactiveCustomers: customers.length - activeCount,
+      averageHealthScore: customers.length > 0 ? totalHealthScore / customers.length : 0,
+      totalMrr,
+      healthDistribution,
+      countryDistribution,
+      channelDistribution,
+      propertyTypeDistribution,
+    };
+
     setCustomers(summaries);
-  }, [repository, healthCalculator, setCustomers]);
+    setDashboardMetrics(dashboardMetrics);
+  }, [repository, healthCalculator, setCustomers, setDashboardMetrics]);
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
