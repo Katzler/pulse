@@ -37,6 +37,8 @@ export interface ReadOptions {
   encoding?: string;
   /** Maximum file size in bytes. Default: 10MB */
   maxSizeBytes?: number;
+  /** AbortSignal for cancellation support */
+  signal?: AbortSignal;
 }
 
 /**
@@ -129,12 +131,38 @@ export class FileUploadHandler {
       return validation;
     }
 
+    // Check if already aborted
+    if (options?.signal?.aborted) {
+      return {
+        success: false,
+        error: {
+          code: 'CANCELLED',
+          message: 'File read was cancelled',
+        },
+      };
+    }
+
     const encoding = options?.encoding ?? DEFAULT_ENCODING;
 
     return new Promise((resolve) => {
       const reader = new FileReader();
 
+      // Set up abort handler
+      const abortHandler = () => {
+        reader.abort();
+        resolve({
+          success: false,
+          error: {
+            code: 'CANCELLED',
+            message: 'File read was cancelled',
+          },
+        });
+      };
+
+      options?.signal?.addEventListener('abort', abortHandler);
+
       reader.onload = (event) => {
+        options?.signal?.removeEventListener('abort', abortHandler);
         const content = event.target?.result as string;
         if (content === null || content === undefined) {
           resolve({
@@ -157,6 +185,7 @@ export class FileUploadHandler {
       };
 
       reader.onerror = () => {
+        options?.signal?.removeEventListener('abort', abortHandler);
         resolve({
           success: false,
           error: {
@@ -164,6 +193,11 @@ export class FileUploadHandler {
             message: 'Failed to read file',
           },
         });
+      };
+
+      reader.onabort = () => {
+        options?.signal?.removeEventListener('abort', abortHandler);
+        // Only resolve if not already resolved by abortHandler
       };
 
       reader.readAsText(file, encoding);
@@ -184,10 +218,35 @@ export class FileUploadHandler {
       return validation;
     }
 
+    // Check if already aborted
+    if (options?.signal?.aborted) {
+      return {
+        success: false,
+        error: {
+          code: 'CANCELLED',
+          message: 'File read was cancelled',
+        },
+      };
+    }
+
     const encoding = options?.encoding ?? DEFAULT_ENCODING;
 
     return new Promise((resolve) => {
       const reader = new FileReader();
+
+      // Set up abort handler
+      const abortHandler = () => {
+        reader.abort();
+        resolve({
+          success: false,
+          error: {
+            code: 'CANCELLED',
+            message: 'File read was cancelled',
+          },
+        });
+      };
+
+      options?.signal?.addEventListener('abort', abortHandler);
 
       reader.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -197,6 +256,7 @@ export class FileUploadHandler {
       };
 
       reader.onload = (event) => {
+        options?.signal?.removeEventListener('abort', abortHandler);
         onProgress(100);
         const content = event.target?.result as string;
         if (content === null || content === undefined) {
@@ -220,6 +280,7 @@ export class FileUploadHandler {
       };
 
       reader.onerror = () => {
+        options?.signal?.removeEventListener('abort', abortHandler);
         resolve({
           success: false,
           error: {
@@ -227,6 +288,11 @@ export class FileUploadHandler {
             message: 'Failed to read file',
           },
         });
+      };
+
+      reader.onabort = () => {
+        options?.signal?.removeEventListener('abort', abortHandler);
+        // Only resolve if not already resolved by abortHandler
       };
 
       reader.readAsText(file, encoding);

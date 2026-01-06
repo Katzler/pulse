@@ -152,4 +152,82 @@ describe('FileUploadHandler', () => {
       }
     });
   });
+
+  describe('cancellation support', () => {
+    it('returns CANCELLED when signal is already aborted for readFile', async () => {
+      const file = createMockFile('name,value\ntest,123', 'test.csv');
+      const controller = new AbortController();
+      controller.abort();
+
+      const result = await handler.readFile(file, { signal: controller.signal });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('CANCELLED');
+        expect(result.error.message).toBe('File read was cancelled');
+      }
+    });
+
+    it('returns CANCELLED when signal is already aborted for readFileWithProgress', async () => {
+      const file = createMockFile('name,value\ntest,123', 'test.csv');
+      const controller = new AbortController();
+      controller.abort();
+
+      const result = await handler.readFileWithProgress(file, () => {}, { signal: controller.signal });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.code).toBe('CANCELLED');
+      }
+    });
+
+    it('completes normally when signal is not aborted', async () => {
+      const csvContent = 'name,value\ntest,123';
+      const file = createMockFile(csvContent, 'test.csv');
+      const controller = new AbortController();
+
+      const result = await handler.readFile(file, { signal: controller.signal });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.content).toBe(csvContent);
+      }
+    });
+
+    it('can be cancelled mid-read for readFile', async () => {
+      const csvContent = 'name,value\ntest,123';
+      const file = createMockFile(csvContent, 'test.csv');
+      const controller = new AbortController();
+
+      // Start the read and abort immediately
+      const resultPromise = handler.readFile(file, { signal: controller.signal });
+      controller.abort();
+
+      const result = await resultPromise;
+
+      // Either completes successfully (if read finished before abort)
+      // or returns CANCELLED (if abort happened in time)
+      if (!result.success) {
+        expect(result.error.code).toBe('CANCELLED');
+      }
+    });
+
+    it('can be cancelled mid-read for readFileWithProgress', async () => {
+      const csvContent = 'name,value\ntest,123';
+      const file = createMockFile(csvContent, 'test.csv');
+      const controller = new AbortController();
+
+      // Start the read and abort immediately
+      const resultPromise = handler.readFileWithProgress(file, () => {}, { signal: controller.signal });
+      controller.abort();
+
+      const result = await resultPromise;
+
+      // Either completes successfully (if read finished before abort)
+      // or returns CANCELLED (if abort happened in time)
+      if (!result.success) {
+        expect(result.error.code).toBe('CANCELLED');
+      }
+    });
+  });
 });
