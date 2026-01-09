@@ -24,7 +24,9 @@ const formulaPayloads = [
 ];
 
 // Characters that could trigger formula execution in Excel
-const formulaStartChars = ['=', '+', '-', '@', '\t', '\r', '\n', "'"];
+// Used as reference documentation for CSV formula injection prevention
+const _formulaStartChars = ['=', '+', '-', '@', '\t', '\r', '\n', "'"];
+void _formulaStartChars;
 
 describe('CSV Formula Injection Prevention', () => {
   describe('Sanitizer.sanitizeString', () => {

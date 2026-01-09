@@ -1,12 +1,11 @@
 /**
  * Accessibility testing setup with vitest-axe
+ *
+ * Note: vitest-axe matchers are extended globally in __tests__/setup.ts
+ * via 'vitest-axe/extend-expect' import.
  */
-import { axe } from 'vitest-axe';
-import * as matchers from 'vitest-axe/matchers';
-import { expect } from 'vitest';
-
-// Extend Vitest matchers with accessibility matchers
-expect.extend(matchers);
+import { axe, type AxeMatchers } from 'vitest-axe';
+import { expect, type Assertion } from 'vitest';
 
 /**
  * Run axe accessibility checks on a container element
@@ -16,7 +15,7 @@ expect.extend(matchers);
 export async function testAccessibility(
   container: HTMLElement,
   options?: Parameters<typeof axe>[1]
-) {
+): Promise<void> {
   const results = await axe(container, {
     // Default rules that align with WCAG 2.1 AA
     rules: {
@@ -26,7 +25,8 @@ export async function testAccessibility(
     },
     ...options,
   });
-  expect(results).toHaveNoViolations();
+  // Use type assertion to access vitest-axe matcher
+  (expect(results) as Assertion & AxeMatchers).toHaveNoViolations();
 }
 
 /**

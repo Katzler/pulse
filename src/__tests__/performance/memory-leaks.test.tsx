@@ -12,7 +12,6 @@
 
 import { MemoryRouter } from 'react-router-dom';
 import { act, cleanup, render } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { compositionRoot } from '@application/composition';
@@ -23,9 +22,8 @@ import { Dashboard } from '@presentation/pages/Dashboard';
 import { Import } from '@presentation/pages/Import';
 import { useCustomerStore, useImportStore, useUIStore } from '@presentation/stores';
 
-// Track mount/unmount counts
+// Track mount counts
 let mountCount = 0;
-let unmountCount = 0;
 
 // Mock component to track lifecycle
 function LifecycleTracker({ children }: { children: React.ReactNode }) {
@@ -54,7 +52,6 @@ beforeEach(() => {
   useImportStore.getState().resetImport();
   useUIStore.getState().clearToasts();
   mountCount = 0;
-  unmountCount = 0;
 });
 
 afterEach(() => {
@@ -67,17 +64,14 @@ afterEach(() => {
 describe('Memory Leak Detection', () => {
   describe('Timer Cleanup', () => {
     it('should clean up timers on unmount in Dashboard', async () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
-      const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
 
       const { unmount } = render(
         <TestWrapper>
           <Dashboard />
         </TestWrapper>
       );
-
-      // Record setTimeout calls before unmount
-      const timeoutsBefore = setTimeoutSpy.mock.calls.length;
 
       unmount();
 
@@ -90,8 +84,8 @@ describe('Memory Leak Detection', () => {
     });
 
     it('should clean up intervals on unmount in CustomerList', async () => {
-      const setIntervalSpy = vi.spyOn(global, 'setInterval');
-      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+      const setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
+      const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
 
       const { unmount } = render(
         <TestWrapper>
@@ -255,7 +249,6 @@ describe('Memory Leak Detection', () => {
     });
 
     it('should handle rapid navigation between pages', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Simulate rapid page changes
@@ -379,8 +372,6 @@ describe('Memory Leak Detection', () => {
     });
 
     it('Import should clean up file reader on cancel', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-
       const { unmount } = render(
         <TestWrapper>
           <Import />
