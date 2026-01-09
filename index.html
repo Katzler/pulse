@@ -6,6 +6,18 @@
     <meta name="description" content="Pulse - Monitor customer health and success metrics" />
     <meta name="theme-color" content="#3B82F6" />
     <title>Pulse</title>
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var path = params.get('p');
+        if (path) {
+          var query = params.get('q') || '';
+          var newUrl = window.location.origin + '/pulse' + decodeURIComponent(path) + decodeURIComponent(query) + window.location.hash;
+          window.history.replaceState(null, '', newUrl);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
