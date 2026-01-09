@@ -19,8 +19,10 @@ export interface ImportRowError {
 export interface RawCsvRecord {
   'Sirvoy Customer ID': string;
   'Account Owner': string;
+  'Account Name': string;
   'Latest Login': string;
   'Created Date': string;
+  'Last Customer Success Contact Date': string;
   'Billing Country': string;
   'Account Type': string;
   Languages: string;
@@ -162,15 +164,27 @@ export class ImportCustomersUseCase {
   private convertToCustomer(record: RawCsvRecord, row: number): Result<Customer, string> {
     try {
       // Parse dates (expected format: DD/MM/YYYY, HH:mm or DD/MM/YYYY)
-      const latestLogin = this.parseDate(record['Latest Login']);
+      // Latest Login can be empty (customer never logged in)
+      const latestLoginStr = record['Latest Login']?.trim();
+      const latestLogin = latestLoginStr ? this.parseDate(latestLoginStr) : null;
       const createdDate = this.parseDate(record['Created Date']);
 
-      if (!latestLogin) {
+      // Parse last CS contact date (optional)
+      const lastCsContactDateStr = record['Last Customer Success Contact Date']?.trim();
+      const lastCsContactDate = lastCsContactDateStr ? this.parseDate(lastCsContactDateStr) : null;
+
+      // If latestLogin string was provided but couldn't be parsed, it's an error
+      if (latestLoginStr && latestLogin === null) {
         return { success: false, error: `Invalid Latest Login date format at row ${row}` };
       }
 
       if (!createdDate) {
         return { success: false, error: `Invalid Created Date format at row ${row}` };
+      }
+
+      // If lastCsContactDate string was provided but couldn't be parsed, it's an error
+      if (lastCsContactDateStr && lastCsContactDate === null) {
+        return { success: false, error: `Invalid Last Customer Success Contact Date format at row ${row}` };
       }
 
       // Parse MRR (default to 0 if invalid)
@@ -192,8 +206,10 @@ export class ImportCustomersUseCase {
       const props: CustomerProps = {
         id: record['Sirvoy Customer ID'].trim(),
         accountOwner: record['Account Owner'].trim(),
+        accountName: record['Account Name']?.trim() ?? '',
         latestLogin,
         createdDate,
+        lastCsContactDate,
         billingCountry: record['Billing Country']?.trim() ?? '',
         accountType,
         languages,

@@ -142,9 +142,15 @@ export class HealthScoreCalculator {
   /**
    * Login Recency Factor (25 points max)
    * Based on days since last login
+   * Returns 0 if customer has never logged in
    */
   private calculateLoginRecency(customer: Customer): number {
     const daysSinceLogin = customer.daysSinceLastLogin();
+
+    // If customer has never logged in, they get 0 points
+    if (daysSinceLogin === null) {
+      return 0;
+    }
 
     for (const threshold of LOGIN_RECENCY_THRESHOLDS) {
       if (daysSinceLogin <= threshold.days) {

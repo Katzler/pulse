@@ -10,6 +10,7 @@ const mockCustomers: CustomerSummaryDTO[] = [
   {
     id: '33001',
     accountOwner: 'Hotel Alpha',
+    accountName: 'Alpha Hotels Inc',
     status: 'Active Customer',
     accountType: 'Pro',
     healthScore: 85,
@@ -17,11 +18,13 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 2265,
     channelCount: 5,
     latestLogin: new Date().toISOString(),
+    lastCsContactDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'USA',
   },
   {
     id: '33142',
     accountOwner: 'Hotel Beta',
+    accountName: 'Beta Hospitality Group',
     status: 'Inactive Customer',
     accountType: 'Pro',
     healthScore: 45,
@@ -29,11 +32,13 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 1500,
     channelCount: 3,
     latestLogin: new Date().toISOString(),
+    lastCsContactDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'Germany',
   },
   {
     id: '33171',
     accountOwner: 'Hotel Gamma',
+    accountName: 'Gamma Resorts LLC',
     status: 'Inactive Customer',
     accountType: 'Starter',
     healthScore: 15,
@@ -41,6 +46,7 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 547,
     channelCount: 2,
     latestLogin: new Date().toISOString(),
+    lastCsContactDate: null,
     billingCountry: 'France',
   },
 ];

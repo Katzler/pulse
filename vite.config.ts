@@ -3,9 +3,35 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 
+// Bundle analyzer - only load in analyze mode
+// Usage: ANALYZE=true npm run build
+const isAnalyze = process.env.ANALYZE === 'true';
+
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path for GitHub Pages - uses repo name from env or defaults to '/'
+  // Set VITE_BASE_PATH environment variable in GitHub Actions
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [react()],
+  build: {
+    // Enable source maps for better debugging
+    sourcemap: isAnalyze,
+    // Report compressed file sizes
+    reportCompressedSize: true,
+    // Rollup options for bundle analysis
+    rollupOptions: {
+      output: {
+        // Manual chunk splitting for better caching
+        manualChunks: {
+          // Vendor chunks
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-charts': ['recharts'],
+          'vendor-state': ['zustand', '@tanstack/react-query'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@domain': path.resolve(__dirname, './src/domain'),

@@ -10,8 +10,10 @@ function createTestCustomer(overrides: Partial<CustomerProps> = {}): Customer {
   const defaults: CustomerProps = {
     id: 'CUST-001',
     accountOwner: 'John Smith',
+    accountName: 'Acme Hotels',
     latestLogin: now,
     createdDate: new Date('2023-01-01T00:00:00Z'),
+    lastCsContactDate: new Date('2024-01-10T00:00:00Z'),
     billingCountry: 'Sweden',
     accountType: AccountType.Pro,
     languages: ['English', 'Swedish'],
@@ -110,6 +112,15 @@ describe('CustomerMapper', () => {
       expect(customer.languages).toHaveLength(2);
       expect(customer.channels).toHaveLength(2);
     });
+
+    it('maps null latestLogin correctly', () => {
+      const customer = createTestCustomer({ latestLogin: null });
+      const healthScore = createTestHealthScore(50);
+
+      const dto = CustomerMapper.toDTO(customer, healthScore);
+
+      expect(dto.latestLogin).toBeNull();
+    });
   });
 
   describe('toSummaryDTO', () => {
@@ -127,6 +138,15 @@ describe('CustomerMapper', () => {
       expect(dto.healthClassification).toBe(HealthScoreClassification.Healthy);
       expect(dto.mrr).toBe(1500);
       expect(dto.channelCount).toBe(2);
+    });
+
+    it('maps null latestLogin in summary correctly', () => {
+      const customer = createTestCustomer({ latestLogin: null });
+      const healthScore = createTestHealthScore(50);
+
+      const dto = CustomerMapper.toSummaryDTO(customer, healthScore);
+
+      expect(dto.latestLogin).toBeNull();
     });
   });
 

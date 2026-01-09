@@ -86,13 +86,13 @@ function ToastIcon({ type }: { type: ToastVariant }) {
 function getToastStyles(type: ToastVariant): string {
   switch (type) {
     case 'success':
-      return 'bg-green-50 border-green-200';
+      return 'bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800';
     case 'error':
-      return 'bg-red-50 border-red-200';
+      return 'bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800';
     case 'warning':
-      return 'bg-yellow-50 border-yellow-200';
+      return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800';
     case 'info':
-      return 'bg-blue-50 border-blue-200';
+      return 'bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800';
   }
 }
 
@@ -242,15 +242,15 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       <div className="flex items-start">
         <ToastIcon type={type} />
         <div className="ml-3 flex-1">
-          <p className="text-sm font-medium text-gray-900">{title}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</p>
           {message && (
-            <p className="mt-1 text-sm text-gray-600">{message}</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{message}</p>
           )}
         </div>
         {dismissible && (
           <button
             type="button"
-            className="ml-4 inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="ml-4 inline-flex rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             onClick={handleDismiss}
             aria-label="Dismiss notification"
           >

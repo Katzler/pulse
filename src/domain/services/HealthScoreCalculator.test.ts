@@ -14,8 +14,10 @@ function createCustomer(overrides: Partial<CustomerProps> = {}): Customer {
   const defaults: CustomerProps = {
     id: 'TEST-001',
     accountOwner: 'Test Owner',
+    accountName: 'Test Account',
     latestLogin: now,
     createdDate: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+    lastCsContactDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
     billingCountry: 'SE',
     accountType: AccountType.Pro,
     languages: ['English'],
@@ -130,6 +132,12 @@ describe('HealthScoreCalculator', () => {
 
     it('gives 0 points for login over 90 days ago', () => {
       const customer = createCustomer({ latestLogin: daysAgo(180) });
+      const breakdown = calculator.getFactorBreakdown(customer);
+      expect(breakdown.loginRecency).toBe(0);
+    });
+
+    it('gives 0 points when customer has never logged in', () => {
+      const customer = createCustomer({ latestLogin: null });
       const breakdown = calculator.getFactorBreakdown(customer);
       expect(breakdown.loginRecency).toBe(0);
     });

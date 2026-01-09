@@ -12,7 +12,9 @@ function createMockCustomer(overrides: Partial<CustomerSummaryDTO> = {}): Custom
   return {
     id: 'CUST-001',
     accountOwner: 'Hotel Grand Plaza',
+    accountName: 'Grand Plaza Hotels Inc',
     latestLogin: '2024-01-15T10:00:00Z',
+    lastCsContactDate: '2024-01-10T14:00:00Z',
     billingCountry: 'Germany',
     accountType: 'Pro',
     status: 'Active Customer',

@@ -58,8 +58,10 @@ export class Sanitizer {
     // Explicitly construct the sanitized record with all required fields
     const sanitizedRecord: RawCustomerRecord = {
       'Account Owner': sanitizeField('Account Owner'),
+      'Account Name': sanitizeField('Account Name'),
       'Latest Login': sanitizeField('Latest Login'),
       'Created Date': sanitizeField('Created Date'),
+      'Last Customer Success Contact Date': sanitizeField('Last Customer Success Contact Date'),
       'Billing Country': sanitizeField('Billing Country'),
       'Account Type': sanitizeField('Account Type'),
       'Language': sanitizeField('Language'),

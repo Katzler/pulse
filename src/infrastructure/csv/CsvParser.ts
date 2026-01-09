@@ -270,8 +270,10 @@ export class CsvParser {
     // Construct the record with all required fields explicitly
     const record: RawCustomerRecord = {
       'Account Owner': getField('Account Owner'),
+      'Account Name': getField('Account Name'),
       'Latest Login': getField('Latest Login'),
       'Created Date': getField('Created Date'),
+      'Last Customer Success Contact Date': getField('Last Customer Success Contact Date'),
       'Billing Country': getField('Billing Country'),
       'Account Type': getField('Account Type'),
       'Language': getField('Language'),

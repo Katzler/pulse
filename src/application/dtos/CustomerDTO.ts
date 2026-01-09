@@ -7,10 +7,14 @@ export interface CustomerDTO {
   id: string;
   /** Account owner name */
   accountOwner: string;
-  /** Latest login as ISO date string */
-  latestLogin: string;
+  /** Account/company name */
+  accountName: string;
+  /** Latest login as ISO date string, or null if never logged in */
+  latestLogin: string | null;
   /** Account creation date as ISO date string */
   createdDate: string;
+  /** Last customer success contact date as ISO date string, or null if never contacted */
+  lastCsContactDate: string | null;
   /** Billing country name */
   billingCountry: string;
   /** Account type: "Pro" or "Starter" */
@@ -44,6 +48,8 @@ export interface CustomerSummaryDTO {
   id: string;
   /** Account owner name */
   accountOwner: string;
+  /** Account/company name */
+  accountName: string;
   /** Status: "Active Customer" or "Inactive Customer" */
   status: string;
   /** Account type: "Pro" or "Starter" */
@@ -56,8 +62,10 @@ export interface CustomerSummaryDTO {
   mrr: number;
   /** Number of connected channels */
   channelCount: number;
-  /** Latest login as ISO date string */
-  latestLogin: string;
+  /** Latest login as ISO date string, or null if never logged in */
+  latestLogin: string | null;
+  /** Last customer success contact date as ISO date string, or null if never contacted */
+  lastCsContactDate: string | null;
   /** Billing country name */
   billingCountry: string;
 }

@@ -24,12 +24,12 @@ function FactorsContent() {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-gray-500 mb-2">Weighted factors (100 points total):</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Weighted factors (100 points total):</p>
       <ul className="space-y-1.5">
         {formula.factors.map((factor) => (
           <li key={factor.name} className="flex justify-between text-xs">
-            <span className="text-gray-700">{factor.name}</span>
-            <span className="font-medium text-gray-900">{factor.weight}</span>
+            <span className="text-gray-700 dark:text-gray-300">{factor.name}</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{factor.weight}</span>
           </li>
         ))}
       </ul>
@@ -45,22 +45,22 @@ function ClassificationsContent() {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-gray-500 mb-2">Score classifications:</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Score classifications:</p>
       <ul className="space-y-1.5">
         {formula.classifications.map((classification) => (
           <li key={classification.name} className="flex justify-between text-xs">
             <span
               className={`font-medium ${
                 classification.name === 'Healthy'
-                  ? 'text-green-600'
+                  ? 'text-green-600 dark:text-green-400'
                   : classification.name === 'At Risk'
-                    ? 'text-orange-600'
-                    : 'text-red-600'
+                    ? 'text-orange-600 dark:text-orange-400'
+                    : 'text-red-600 dark:text-red-400'
               }`}
             >
               {classification.name}
             </span>
-            <span className="text-gray-600">{classification.range}</span>
+            <span className="text-gray-600 dark:text-gray-400">{classification.range}</span>
           </li>
         ))}
       </ul>
@@ -76,37 +76,37 @@ function FullContent() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-gray-500">{formula.summary}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{formula.summary}</p>
 
       <div>
-        <p className="text-xs font-medium text-gray-700 mb-1.5">Factors:</p>
+        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Factors:</p>
         <ul className="space-y-1">
           {formula.factors.map((factor) => (
             <li key={factor.name} className="flex justify-between text-xs">
-              <span className="text-gray-600">{factor.name}</span>
-              <span className="text-gray-900">{factor.maxPoints}pts</span>
+              <span className="text-gray-600 dark:text-gray-400">{factor.name}</span>
+              <span className="text-gray-900 dark:text-gray-100">{factor.maxPoints}pts</span>
             </li>
           ))}
         </ul>
       </div>
 
       <div>
-        <p className="text-xs font-medium text-gray-700 mb-1.5">Classifications:</p>
+        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Classifications:</p>
         <ul className="space-y-1">
           {formula.classifications.map((c) => (
             <li key={c.name} className="flex justify-between text-xs">
               <span
                 className={
                   c.name === 'Healthy'
-                    ? 'text-green-600'
+                    ? 'text-green-600 dark:text-green-400'
                     : c.name === 'At Risk'
-                      ? 'text-orange-600'
-                      : 'text-red-600'
+                      ? 'text-orange-600 dark:text-orange-400'
+                      : 'text-red-600 dark:text-red-400'
                 }
               >
                 {c.name}
               </span>
-              <span className="text-gray-600">{c.range}</span>
+              <span className="text-gray-600 dark:text-gray-400">{c.range}</span>
             </li>
           ))}
         </ul>

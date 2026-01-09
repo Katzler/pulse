@@ -14,8 +14,10 @@ export const CustomerMapper = {
     return {
       id: customer.id,
       accountOwner: customer.accountOwner,
-      latestLogin: customer.latestLogin.toISOString(),
+      accountName: customer.accountName,
+      latestLogin: customer.latestLogin?.toISOString() ?? null,
       createdDate: customer.createdDate.toISOString(),
+      lastCsContactDate: customer.lastCsContactDate?.toISOString() ?? null,
       billingCountry: customer.billingCountry,
       accountType: customer.accountType,
       languages: [...customer.languages],
@@ -37,13 +39,15 @@ export const CustomerMapper = {
     return {
       id: customer.id,
       accountOwner: customer.accountOwner,
+      accountName: customer.accountName,
       status: customer.status,
       accountType: customer.accountType,
       healthScore: healthScore.value,
       healthClassification: healthScore.getClassification(),
       mrr: customer.mrr,
       channelCount: customer.channelCount,
-      latestLogin: customer.latestLogin.toISOString(),
+      latestLogin: customer.latestLogin?.toISOString() ?? null,
+      lastCsContactDate: customer.lastCsContactDate?.toISOString() ?? null,
       billingCountry: customer.billingCountry,
     };
   },

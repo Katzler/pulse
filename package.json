@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:analyze": "ANALYZE=true npm run build && npx vite-bundle-visualizer",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
@@ -17,7 +18,9 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "lighthouse": "npx lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html",
+    "lighthouse:ci": "npx @lhci/cli autorun --config=lighthouse.config.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
@@ -29,6 +32,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.11.0",
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
@@ -55,6 +59,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "vitest-axe": "^0.1.0"
   }
 }

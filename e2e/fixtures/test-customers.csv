@@ -1,0 +1,6 @@
+Sirvoy Customer ID,Account Owner,Account Name,Latest Login,Created Date,Last Customer Success Contact Date,Billing Country,Account Type,Language,Status,Sirvoy Account Status,Property Type,MRR (converted) Currency,MRR (converted),Channels
+E2E-001,Hotel Grand Plaza,Grand Plaza Hotels,01/01/2026 10:00,01/01/2024,15/12/2025,USA,Pro,English,Active Customer,Loyal,Hotels,USD,1500,"Booking.com, Expedia"
+E2E-002,B&B Sunrise,Sunrise B&B Group,15/12/2025 14:30,15/06/2023,10/12/2025,Germany,Starter,German,Active Customer,New,B&B,EUR,350,Airbnb
+E2E-003,Mountain Lodge,Alpine Retreats Inc,01/08/2025 09:00,01/03/2023,,France,Pro,French,Inactive Customer,Loyal,Hotels,EUR,0,Direct
+E2E-004,Beach Resort,Coastal Stays LLC,08/01/2026 16:45,20/11/2023,05/01/2026,Spain,Pro,Spanish,Active Customer,Loyal,Vacation Rentals,EUR,2000,"Booking.com, VRBO"
+E2E-005,City Hostel,Urban Hostels Co,,01/07/2024,01/01/2026,UK,Starter,English,Active Customer,New,Hostels,GBP,200,Hostelworld

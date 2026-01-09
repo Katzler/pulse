@@ -54,10 +54,10 @@ function NoDataState() {
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+    <div className="rounded-lg border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-12 text-center">
+      <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center mb-4">
         <svg
-          className="w-8 h-8 text-gray-400"
+          className="w-8 h-8 text-gray-400 dark:text-gray-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -71,8 +71,8 @@ function NoDataState() {
           />
         </svg>
       </div>
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">No customer data</h2>
-      <p className="text-gray-500 mb-6">Import a CSV file to get started with customer data.</p>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No customer data</h2>
+      <p className="text-gray-500 dark:text-gray-400 mb-6">Import a CSV file to get started with customer data.</p>
       <Button variant="primary" onClick={() => navigate('/import')}>
         Import Customers
       </Button>
@@ -207,18 +207,16 @@ export function CustomerList() {
   }, [setSearchParams]);
 
   const handleSort = useCallback((key: CustomerSortKey) => {
-    setSortKey((prevKey) => {
-      if (prevKey === key) {
-        // Toggle sort order if same column
-        setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
-        return key;
-      }
+    if (sortKey === key) {
+      // Toggle sort order if same column
+      setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+    } else {
       // New column, default to ascending
+      setSortKey(key);
       setSortOrder('asc');
-      return key;
-    });
+    }
     setCurrentPage(1);
-  }, []);
+  }, [sortKey]);
 
   const handleRowClick = useCallback(
     (customerId: string) => {
@@ -254,8 +252,8 @@ export function CustomerList() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600">Search and manage customer accounts</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
+          <p className="text-gray-600 dark:text-gray-400">Search and manage customer accounts</p>
         </div>
         <NoDataState />
       </div>
@@ -266,8 +264,8 @@ export function CustomerList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             {filteredCount} of {customers.length} customers
             {filterDescription && ` — ${filterDescription}`}
           </p>
@@ -280,7 +278,7 @@ export function CustomerList() {
       {/* Active Filters */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-600">Filters:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Filters:</span>
           {urlFilters.health && (
             <Badge variant="info" className="flex items-center gap-1">
               Health: {getHealthFilterLabel(urlFilters.health)}
@@ -319,7 +317,7 @@ export function CustomerList() {
           )}
           <button
             onClick={clearAllFilters}
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
           >
             Clear all
           </button>

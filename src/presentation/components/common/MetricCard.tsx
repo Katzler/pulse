@@ -43,27 +43,27 @@ export interface MetricCardProps {
  */
 const colorStyles = {
   blue: {
-    icon: 'text-blue-600 bg-blue-100',
+    icon: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30',
     accent: 'border-l-blue-500',
   },
   green: {
-    icon: 'text-green-600 bg-green-100',
+    icon: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30',
     accent: 'border-l-green-500',
   },
   orange: {
-    icon: 'text-orange-600 bg-orange-100',
+    icon: 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30',
     accent: 'border-l-orange-500',
   },
   purple: {
-    icon: 'text-purple-600 bg-purple-100',
+    icon: 'text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30',
     accent: 'border-l-purple-500',
   },
   red: {
-    icon: 'text-red-600 bg-red-100',
+    icon: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30',
     accent: 'border-l-red-500',
   },
   gray: {
-    icon: 'text-gray-600 bg-gray-100',
+    icon: 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-surface-700',
     accent: 'border-l-gray-500',
   },
 };
@@ -164,15 +164,15 @@ export function MetricCard({
     <>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
           <p
-            className={`mt-1 font-bold text-gray-900 ${
+            className={`mt-1 font-bold text-gray-900 dark:text-white ${
               isLarge ? 'text-4xl' : 'text-2xl'
             }`}
           >
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
-          {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
         </div>
         {icon && (
           <div
@@ -189,16 +189,16 @@ export function MetricCard({
           <span
             className={`flex items-center text-sm font-medium ${
               trend.direction === 'neutral'
-                ? 'text-gray-500'
+                ? 'text-gray-500 dark:text-gray-400'
                 : trend.isPositive
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
             }`}
           >
             <TrendArrow direction={trend.direction} />
             <span className="ml-1">{trend.value}</span>
           </span>
-          <span className="text-sm text-gray-500">from last import</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">from last import</span>
         </div>
       )}
     </>

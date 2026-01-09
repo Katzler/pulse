@@ -31,10 +31,15 @@ export class CsvExporter {
   private readonly defaultColumns: ExportColumn[] = [
     { header: 'Sirvoy Customer ID', getValue: (c) => c.id },
     { header: 'Account Owner', getValue: (c) => c.accountOwner },
+    { header: 'Account Name', getValue: (c) => c.accountName },
     { header: 'Status', getValue: (c) => (c.isActive() ? 'Active Customer' : 'Inactive Customer') },
     { header: 'Account Type', getValue: (c) => c.accountType },
-    { header: 'Latest Login', getValue: (c) => this.formatDateTime(c.latestLogin) },
+    { header: 'Latest Login', getValue: (c) => (c.latestLogin ? this.formatDateTime(c.latestLogin) : '') },
     { header: 'Created Date', getValue: (c) => this.formatDate(c.createdDate) },
+    {
+      header: 'Last Customer Success Contact Date',
+      getValue: (c) => (c.lastCsContactDate ? this.formatDate(c.lastCsContactDate) : ''),
+    },
     { header: 'Billing Country', getValue: (c) => c.billingCountry },
     { header: 'Language', getValue: (c) => c.languages.join('; ') },
     { header: 'Channels', getValue: (c) => c.channels.join('; ') },

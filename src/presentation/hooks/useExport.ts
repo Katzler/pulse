@@ -79,7 +79,7 @@ function customerToCsvRow(customer: CustomerDTO): string {
     customer.accountOwner,
     customer.status,
     customer.accountType,
-    customer.latestLogin,
+    customer.latestLogin ?? '',
     customer.createdDate,
     customer.billingCountry,
     customer.languages.join('; '),

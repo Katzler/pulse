@@ -40,10 +40,14 @@ export type PropertyType = (typeof PropertyType)[keyof typeof PropertyType];
 export interface RawCustomerRecord {
   /** Customer success manager assigned to this account */
   'Account Owner': string;
+  /** Account/company name */
+  'Account Name': string;
   /** Last login timestamp in DD/MM/YYYY, HH:mm format */
   'Latest Login': string;
   /** Account creation date in DD/MM/YYYY format */
   'Created Date': string;
+  /** Last customer success contact date in DD/MM/YYYY format */
+  'Last Customer Success Contact Date': string;
   /** Customer's billing country */
   'Billing Country': string;
   /** Account tier: Pro or Starter */
@@ -71,8 +75,10 @@ export interface RawCustomerRecord {
  */
 export const CSV_HEADERS: (keyof RawCustomerRecord)[] = [
   'Account Owner',
+  'Account Name',
   'Latest Login',
   'Created Date',
+  'Last Customer Success Contact Date',
   'Billing Country',
   'Account Type',
   'Language',

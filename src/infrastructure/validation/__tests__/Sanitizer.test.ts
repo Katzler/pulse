@@ -103,8 +103,10 @@ describe('Sanitizer', () => {
     function createTestRecord(overrides: Partial<RawCustomerRecord> = {}): RawCustomerRecord {
       const defaults: RawCustomerRecord = {
         'Account Owner': 'John Smith',
+        'Account Name': 'Smith Hotels',
         'Latest Login': '15/01/2024, 10:00',
         'Created Date': '01/01/2023',
+        'Last Customer Success Contact Date': '10/01/2024',
         'Billing Country': 'Sweden',
         'Account Type': 'Pro',
         Language: 'English; Swedish',
@@ -146,8 +148,10 @@ describe('Sanitizer', () => {
       const records: RawCustomerRecord[] = [
         {
           'Account Owner': '<script>bad</script>',
+          'Account Name': 'Test Hotels',
           'Latest Login': '15/01/2024',
           'Created Date': '01/01/2023',
+          'Last Customer Success Contact Date': '10/01/2024',
           'Billing Country': 'Sweden',
           'Account Type': 'Pro',
           Language: 'English',
@@ -161,8 +165,10 @@ describe('Sanitizer', () => {
         },
         {
           'Account Owner': 'Normal Name',
+          'Account Name': 'Normal Hotels',
           'Latest Login': '16/01/2024',
           'Created Date': '02/01/2023',
+          'Last Customer Success Contact Date': '11/01/2024',
           'Billing Country': 'Norway',
           'Account Type': 'Starter',
           Language: 'Norwegian',
@@ -187,8 +193,10 @@ describe('Sanitizer', () => {
       const records: RawCustomerRecord[] = [
         {
           'Account Owner': '=FORMULA',
+          'Account Name': 'Test Hotels',
           'Latest Login': '15/01/2024',
           'Created Date': '01/01/2023',
+          'Last Customer Success Contact Date': '10/01/2024',
           'Billing Country': 'Sweden',
           'Account Type': 'Pro',
           Language: 'English',

@@ -18,10 +18,14 @@ export interface CustomerProps {
   id: string;
   /** Name of the account owner/CSM */
   accountOwner: string;
-  /** Timestamp of last login */
-  latestLogin: Date;
+  /** Account/company name */
+  accountName: string;
+  /** Timestamp of last login (null if never logged in) */
+  latestLogin: Date | null;
   /** Account creation date */
   createdDate: Date;
+  /** Last customer success contact date (null if never contacted) */
+  lastCsContactDate: Date | null;
   /** Customer's billing country */
   billingCountry: string;
   /** Account tier: Pro or Starter */
@@ -65,8 +69,10 @@ export interface CustomerProps {
 export class Customer {
   readonly id: string;
   readonly accountOwner: string;
-  readonly latestLogin: Date;
+  readonly accountName: string;
+  readonly latestLogin: Date | null;
   readonly createdDate: Date;
+  readonly lastCsContactDate: Date | null;
   readonly billingCountry: string;
   readonly accountType: AccountType;
   readonly languages: readonly string[];
@@ -80,8 +86,10 @@ export class Customer {
   private constructor(
     id: string,
     accountOwner: string,
-    latestLogin: Date,
+    accountName: string,
+    latestLogin: Date | null,
     createdDate: Date,
+    lastCsContactDate: Date | null,
     billingCountry: string,
     accountType: AccountType,
     languages: readonly string[],
@@ -94,8 +102,10 @@ export class Customer {
   ) {
     this.id = id;
     this.accountOwner = accountOwner;
+    this.accountName = accountName;
     this.latestLogin = latestLogin;
     this.createdDate = createdDate;
+    this.lastCsContactDate = lastCsContactDate;
     this.billingCountry = billingCountry;
     this.accountType = accountType;
     this.languages = languages;
@@ -132,8 +142,8 @@ export class Customer {
       };
     }
 
-    // Validate login date is not before created date
-    if (props.latestLogin < props.createdDate) {
+    // Validate login date is not before created date (only if logged in)
+    if (props.latestLogin !== null && props.latestLogin < props.createdDate) {
       return {
         success: false,
         error: new CustomerValidationError(
@@ -145,8 +155,10 @@ export class Customer {
     const customer = new Customer(
       props.id.trim(),
       props.accountOwner,
+      props.accountName,
       props.latestLogin,
       props.createdDate,
+      props.lastCsContactDate,
       props.billingCountry,
       props.accountType,
       [...props.languages],
@@ -180,11 +192,22 @@ export class Customer {
 
   /**
    * Calculates the number of days since the customer last logged in.
+   * Returns null if the customer has never logged in.
    * @param referenceDate - The date to calculate from (defaults to now)
    */
-  daysSinceLastLogin(referenceDate: Date = new Date()): number {
+  daysSinceLastLogin(referenceDate: Date = new Date()): number | null {
+    if (this.latestLogin === null) {
+      return null;
+    }
     const diffMs = referenceDate.getTime() - this.latestLogin.getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * Returns true if the customer has ever logged in
+   */
+  hasLoggedIn(): boolean {
+    return this.latestLogin !== null;
   }
 
   /**

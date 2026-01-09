@@ -6,7 +6,7 @@ import App from './App';
 describe('App', () => {
   it('renders the application with header', () => {
     render(<App />);
-    expect(screen.getByText('Customer Success')).toBeInTheDocument();
+    expect(screen.getByText('Pulse')).toBeInTheDocument();
   });
 
   it('renders the dashboard page by default', () => {

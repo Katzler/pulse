@@ -238,9 +238,9 @@ export function InfoTooltip({
       <button
         type="button"
         className={`
-          ${iconSizeClasses} text-gray-400 hover:text-gray-600
+          ${iconSizeClasses} text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
           transition-colors cursor-help focus:outline-none focus:ring-2
-          focus:ring-blue-500 focus:ring-offset-1 rounded-full
+          focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-surface-800 rounded-full
           ${iconClassName}
         `}
         aria-label={title ? `Info about ${title}` : 'More information'}
@@ -251,17 +251,17 @@ export function InfoTooltip({
       {isVisible && (
         <div
           className={`
-            absolute z-50 p-3 text-sm bg-white rounded-lg shadow-lg
-            border border-gray-200 min-w-64 max-w-sm
+            absolute z-50 p-3 text-sm bg-white dark:bg-surface-800 rounded-lg shadow-lg
+            border border-gray-200 dark:border-surface-700 min-w-64 max-w-sm
             animate-in fade-in duration-150
             ${getPositionClasses(position)}
           `}
           role="tooltip"
         >
           {title && (
-            <p className="font-semibold text-gray-900 mb-1">{title}</p>
+            <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{title}</p>
           )}
-          <div className="text-gray-600">{content}</div>
+          <div className="text-gray-600 dark:text-gray-400">{content}</div>
         </div>
       )}
     </div>

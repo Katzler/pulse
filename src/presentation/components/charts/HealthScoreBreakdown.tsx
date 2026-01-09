@@ -69,12 +69,12 @@ function getHealthClassification(score: number): {
   bgColor: string;
 } {
   if (score >= 70) {
-    return { label: 'Healthy', color: 'text-green-700', bgColor: 'bg-green-100' };
+    return { label: 'Healthy', color: 'text-green-700 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30' };
   }
   if (score >= 30) {
-    return { label: 'At Risk', color: 'text-orange-700', bgColor: 'bg-orange-100' };
+    return { label: 'At Risk', color: 'text-orange-700 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30' };
   }
-  return { label: 'Critical', color: 'text-red-700', bgColor: 'bg-red-100' };
+  return { label: 'Critical', color: 'text-red-700 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30' };
 }
 
 /**
@@ -115,20 +115,20 @@ function FactorBar({
       <div className="flex justify-between items-center text-sm">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${factor.color}`} />
-          <span className="font-medium text-gray-700">{factor.label}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">{factor.label}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span
-            className={`font-semibold ${isMaxed ? 'text-green-600' : 'text-gray-900'}`}
+            className={`font-semibold ${isMaxed ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}
             data-testid={`score-${factor.key}`}
           >
             {score}
           </span>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-500">{factor.maxScore}</span>
+          <span className="text-gray-500 dark:text-gray-400">{factor.maxScore}</span>
         </div>
       </div>
-      <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-gray-200 dark:bg-surface-700 rounded-full overflow-hidden">
         <div
           className={`h-full ${factor.color} rounded-full ${
             animated ? 'transition-all duration-500 ease-out' : ''
@@ -142,7 +142,7 @@ function FactorBar({
         />
       </div>
       {showDescription && (
-        <p className="text-xs text-gray-500 pl-4">{factor.description}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 pl-4">{factor.description}</p>
       )}
     </div>
   );
@@ -159,10 +159,10 @@ function TotalScoreSummary({ totalScore }: TotalScoreSummaryProps): JSX.Element 
   const classification = getHealthClassification(totalScore);
 
   return (
-    <div className="pt-4 border-t border-gray-200" data-testid="total-score-summary">
+    <div className="pt-4 border-t border-gray-200 dark:border-surface-700" data-testid="total-score-summary">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-base font-semibold text-gray-900">
+          <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
             Total Health Score
           </span>
           <span
@@ -173,16 +173,16 @@ function TotalScoreSummary({ totalScore }: TotalScoreSummaryProps): JSX.Element 
         </div>
         <div className="flex items-center gap-1.5">
           <span
-            className="text-2xl font-bold text-gray-900"
+            className="text-2xl font-bold text-gray-900 dark:text-gray-100"
             data-testid="total-health-score"
           >
             {totalScore}
           </span>
           <span className="text-gray-400 text-lg">/</span>
-          <span className="text-gray-500 text-lg">100</span>
+          <span className="text-gray-500 dark:text-gray-400 text-lg">100</span>
         </div>
       </div>
-      <div className="mt-3 h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="mt-3 h-3 bg-gray-200 dark:bg-surface-700 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-700 ease-out ${
             totalScore >= 70
@@ -209,13 +209,13 @@ function TotalScoreSummary({ totalScore }: TotalScoreSummaryProps): JSX.Element 
 function FactorLegend(): JSX.Element {
   return (
     <div
-      className="flex flex-wrap gap-3 pt-3 border-t border-gray-100"
+      className="flex flex-wrap gap-3 pt-3 border-t border-gray-100 dark:border-surface-700"
       data-testid="factor-legend"
     >
       {healthFactors.map((factor) => (
         <div key={factor.key} className="flex items-center gap-1.5 text-xs">
           <span className={`w-2 h-2 rounded-full ${factor.color}`} />
-          <span className="text-gray-600">
+          <span className="text-gray-600 dark:text-gray-400">
             {factor.label} ({factor.maxScore}pts)
           </span>
         </div>

@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import type { HealthDistributionDTO } from '@application/dtos';
@@ -100,12 +100,12 @@ function CustomTooltip({
   const percentage = calculatePercentage(data.value, total);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-      <p className="font-semibold text-gray-900">{data.name} Customers</p>
-      <p className="text-sm text-gray-600">
+    <div className="rounded-lg border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-3 shadow-lg">
+      <p className="font-semibold text-gray-900 dark:text-gray-100">{data.name} Customers</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
         {data.value.toLocaleString()} customers ({percentage}%)
       </p>
-      <p className="text-xs text-gray-500">Score range: {data.range}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">Score range: {data.range}</p>
     </div>
   );
 }
@@ -137,9 +137,9 @@ function CustomLegend({
               style={{ backgroundColor: entry.color }}
               aria-hidden="true"
             />
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               {entry.value} ({entry.payload.range}):{' '}
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-gray-900 dark:text-gray-100">
                 {entry.payload.value.toLocaleString()}
               </span>{' '}
               ({percentage}%)
@@ -179,6 +179,7 @@ function renderCustomLabel(props: {
       textAnchor="middle"
       dominantBaseline="central"
       className="text-sm font-medium"
+      style={{ pointerEvents: 'none' }}
     >
       {`${(percent * 100).toFixed(0)}%`}
     </text>
@@ -192,8 +193,8 @@ function EmptyState() {
   return (
     <div className="flex h-64 items-center justify-center">
       <div className="text-center">
-        <p className="text-sm font-medium text-gray-700">No health data available</p>
-        <p className="text-xs text-gray-500">Import customer data to see distribution</p>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No health data available</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Import customer data to see distribution</p>
       </div>
     </div>
   );
@@ -218,17 +219,8 @@ export function HealthDistributionChart({
   height = 300,
   onSegmentClick,
 }: HealthDistributionChartProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const chartData = transformData(data);
   const total = data.healthy + data.atRisk + data.critical;
-
-  const handleMouseEnter = useCallback((_: unknown, index: number) => {
-    setActiveIndex(index);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setActiveIndex(null);
-  }, []);
 
   const handleClick = useCallback(
     (entry: ChartDataItem) => {
@@ -255,24 +247,23 @@ export function HealthDistributionChart({
             paddingAngle={2}
             dataKey="value"
             nameKey="name"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
             onClick={(_, index) => handleClick(chartData[index])}
             style={{ cursor: onSegmentClick ? 'pointer' : 'default' }}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             label={showLabels ? (renderCustomLabel as any) : false}
             labelLine={false}
+            isAnimationActive={false}
           >
-            {chartData.map((entry, index) => (
+            {chartData.map((entry) => (
               <Cell
                 key={`cell-${entry.category}`}
                 fill={entry.color}
-                stroke={activeIndex === index ? '#1F2937' : entry.color}
-                strokeWidth={activeIndex === index ? 2 : 0}
+                stroke="none"
+                className="transition-[filter] duration-150 ease-out hover:brightness-125"
               />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
           {showLegend && (
             <Legend
               /* eslint-disable @typescript-eslint/no-explicit-any */

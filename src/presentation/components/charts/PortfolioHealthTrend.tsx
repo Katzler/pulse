@@ -43,12 +43,12 @@ function HealthStatusBar({
   return (
     <div className="mb-3">
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">{label}</span>
-        <span className="font-medium text-gray-900">
+        <span className="text-gray-600 dark:text-gray-400">{label}</span>
+        <span className="font-medium text-gray-900 dark:text-gray-100">
           {count.toLocaleString()} ({calculatePercentage(count, total)}%)
         </span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-gray-100 dark:bg-surface-700 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{ width: `${percentage}%`, backgroundColor: color }}
@@ -63,9 +63,15 @@ function HealthStatusBar({
  */
 function HealthScoreIndicator({ score }: { score: number }): JSX.Element {
   const getColor = () => {
-    if (score >= 70) return 'text-green-600 bg-green-100';
-    if (score >= 30) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 70) return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30';
+    if (score >= 30) return 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30';
+    return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
+  };
+
+  const getLabelColor = () => {
+    if (score >= 70) return 'text-green-600 dark:text-green-400';
+    if (score >= 30) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const getLabel = () => {
@@ -79,8 +85,8 @@ function HealthScoreIndicator({ score }: { score: number }): JSX.Element {
       <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${getColor()}`}>
         <span className="text-2xl font-bold">{Math.round(score)}</span>
       </div>
-      <p className="mt-2 text-sm text-gray-500">
-        Average Score: <span className={getColor().split(' ')[0]}>{getLabel()}</span>
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        Average Score: <span className={getLabelColor()}>{getLabel()}</span>
       </p>
     </div>
   );
@@ -140,21 +146,21 @@ export function PortfolioHealthTrend({
       </div>
 
       {/* Action area */}
-      <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-surface-700 flex flex-col sm:flex-row items-center justify-between gap-2">
         {needsAttention > 0 && onViewAtRisk ? (
           <button
             type="button"
             onClick={onViewAtRisk}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-surface-800 rounded"
           >
             View {needsAttention} customers needing attention →
           </button>
         ) : needsAttention > 0 ? (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {needsAttention} customers need attention
           </p>
         ) : (
-          <p className="text-sm text-green-600 font-medium">
+          <p className="text-sm text-green-600 dark:text-green-400 font-medium">
             All customers are healthy!
           </p>
         )}

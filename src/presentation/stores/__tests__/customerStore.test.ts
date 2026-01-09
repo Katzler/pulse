@@ -42,6 +42,7 @@ describe('customerStore', () => {
         {
           id: 'cust-001',
           accountOwner: 'John Doe',
+          accountName: 'Acme Hotels',
           status: 'Active Customer',
           accountType: 'Pro',
           healthScore: 85,
@@ -49,6 +50,7 @@ describe('customerStore', () => {
           mrr: 1000,
           channelCount: 3,
           latestLogin: '2024-01-15T10:30:00Z',
+          lastCsContactDate: '2024-01-10T00:00:00Z',
           billingCountry: 'United States',
         },
       ];
@@ -67,8 +69,10 @@ describe('customerStore', () => {
       const customer: CustomerDTO = {
         id: 'cust-001',
         accountOwner: 'John Doe',
+        accountName: 'Acme Hotels',
         latestLogin: '2024-01-15T10:30:00Z',
         createdDate: '2023-06-01T00:00:00Z',
+        lastCsContactDate: '2024-01-10T00:00:00Z',
         billingCountry: 'United States',
         accountType: 'Pro',
         languages: ['English', 'Spanish'],
@@ -93,8 +97,10 @@ describe('customerStore', () => {
       const customer: CustomerDTO = {
         id: 'cust-001',
         accountOwner: 'Jane Smith',
+        accountName: 'Smith Rentals',
         latestLogin: '2024-01-10T14:00:00Z',
         createdDate: '2023-03-15T00:00:00Z',
+        lastCsContactDate: null,
         billingCountry: 'Germany',
         accountType: 'Starter',
         languages: ['German'],
@@ -197,6 +203,7 @@ describe('customerStore', () => {
           {
             id: 'cust-001',
             accountOwner: 'Test User',
+            accountName: 'Test Account',
             status: 'Active Customer',
             accountType: 'Pro',
             healthScore: 85,
@@ -204,6 +211,7 @@ describe('customerStore', () => {
             mrr: 1000,
             channelCount: 2,
             latestLogin: '2024-01-10T14:00:00Z',
+            lastCsContactDate: '2024-01-05T00:00:00Z',
             billingCountry: 'Germany',
           },
         ]);

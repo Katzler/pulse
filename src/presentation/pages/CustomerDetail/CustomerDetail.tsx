@@ -1,13 +1,14 @@
-import { type JSX, useMemo } from 'react';
+import { type JSX, useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import type {
   ComparativeMetricsDTO,
   CustomerDTO,
-  CustomerSummaryDTO,
   CustomerTimelineDTO,
   HealthScoreBreakdownDTO,
 } from '@application/dtos';
+import { compositionRoot } from '@application/composition';
+import type { GetCustomerDetailsOutput } from '@application/use-cases';
 import { HealthScoreGauge } from '@presentation/components/charts';
 import {
   Badge,
@@ -18,7 +19,6 @@ import {
   LoadingSkeleton,
   PageErrorBoundary,
 } from '@presentation/components/common';
-import { useCustomerStore } from '@presentation/stores';
 
 /**
  * Format currency for display
@@ -103,9 +103,9 @@ interface DetailRowProps {
  */
 function DetailRow({ label, value, testId }: DetailRowProps): JSX.Element {
   return (
-    <div className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-      <span className="text-gray-600">{label}</span>
-      <span className="font-medium text-gray-900" data-testid={testId}>
+    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-surface-700 last:border-0">
+      <span className="text-gray-600 dark:text-gray-400">{label}</span>
+      <span className="font-medium text-gray-900 dark:text-white" data-testid={testId}>
         {value}
       </span>
     </div>
@@ -125,7 +125,7 @@ interface SectionHeaderProps {
  */
 function SectionHeader({ title, icon }: SectionHeaderProps): JSX.Element {
   return (
-    <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+    <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white mb-4">
       {icon}
       {title}
     </h2>
@@ -139,7 +139,7 @@ function BackNavigation(): JSX.Element {
   return (
     <Link
       to="/customers"
-      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors mb-4"
+      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors mb-4"
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -161,11 +161,14 @@ function CustomerHeader({ customer }: CustomerHeaderProps): JSX.Element {
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h1
-          className="text-2xl font-bold text-gray-900"
+          className="text-2xl font-bold text-gray-900 dark:text-white"
           data-testid="customer-name"
         >
-          {customer.accountOwner}
+          {customer.accountName || `Customer ${customer.id}`}
         </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          ID: {customer.id}
+        </p>
         <div className="flex items-center gap-2 mt-2">
           <Badge variant={getStatusBadgeVariant(customer.status)}>
             {customer.status}
@@ -173,8 +176,8 @@ function CustomerHeader({ customer }: CustomerHeaderProps): JSX.Element {
           <Badge variant={getAccountTypeBadgeVariant(customer.accountType)}>
             {customer.accountType}
           </Badge>
-          <span className="text-gray-500 text-sm" data-testid="customer-id">
-            ID: {customer.id}
+          <span className="text-gray-500 dark:text-gray-400 text-sm">
+            {customer.accountOwner}
           </span>
         </div>
       </div>
@@ -202,12 +205,13 @@ function CustomerInfoSection({ customer }: CustomerInfoSectionProps): JSX.Elemen
       <SectionHeader
         title="Customer Information"
         icon={
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         }
       />
       <div className="space-y-1">
+        <DetailRow label="Account Name" value={customer.accountName || '-'} testId="customer-account-name" />
         <DetailRow label="Account Owner" value={customer.accountOwner} />
         <DetailRow label="Country" value={customer.billingCountry} testId="customer-country" />
         <DetailRow
@@ -235,7 +239,7 @@ function FinancialSection({ customer }: FinancialSectionProps): JSX.Element {
       <SectionHeader
         title="Financial"
         icon={
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
@@ -265,7 +269,7 @@ function ChannelsSection({ customer }: ChannelsSectionProps): JSX.Element {
       <SectionHeader
         title="Connected Channels"
         icon={
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         }
@@ -279,9 +283,9 @@ function ChannelsSection({ customer }: ChannelsSectionProps): JSX.Element {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500">No channels connected</p>
+        <p className="text-gray-500 dark:text-gray-400">No channels connected</p>
       )}
-      <p className="mt-4 text-sm text-gray-600">
+      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
         <span className="font-medium">{customer.channels.length}</span> channel
         {customer.channels.length !== 1 ? 's' : ''} connected
       </p>
@@ -324,10 +328,10 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
   return (
     <Card data-testid="health-breakdown-section">
       <div className="flex items-center gap-2 mb-4">
-        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
-        <h2 className="text-lg font-semibold text-gray-900">Health Score Breakdown</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Health Score Breakdown</h2>
         <HealthScoreFormulaTooltip variant="factors" position="right" />
       </div>
       <div className="space-y-4">
@@ -336,12 +340,12 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
           return (
             <div key={factor.label} className="space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-700">{factor.label}</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-gray-700 dark:text-gray-300">{factor.label}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
                   {factor.score} / {factor.max}
                 </span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 dark:bg-surface-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full ${factor.color} rounded-full transition-all duration-300`}
                   style={{ width: `${percentage}%` }}
@@ -355,10 +359,10 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
             </div>
           );
         })}
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-gray-200 dark:border-surface-700">
           <div className="flex justify-between text-base font-semibold">
-            <span className="text-gray-900">Total Health Score</span>
-            <span className="text-gray-900" data-testid="total-health-score">
+            <span className="text-gray-900 dark:text-white">Total Health Score</span>
+            <span className="text-gray-900 dark:text-white" data-testid="total-health-score">
               {breakdown.totalScore} / 100
             </span>
           </div>
@@ -401,42 +405,42 @@ function ComparativeMetricsSection({ metrics }: ComparativeMetricsSectionProps):
       <SectionHeader
         title="Comparison to Portfolio"
         icon={
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         }
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Health Score</p>
+        <div className="text-center p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Health Score</p>
           <p className={`text-lg font-semibold ${healthTrend.color}`}>
             {healthTrend.icon} {metrics.healthScoreVsAverage > 0 ? '+' : ''}
             {metrics.healthScoreVsAverage.toFixed(1)}
           </p>
-          <p className="text-xs text-gray-500">{healthTrend.text}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{healthTrend.text}</p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">MRR</p>
+        <div className="text-center p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">MRR</p>
           <p className={`text-lg font-semibold ${mrrTrend.color}`}>
             {mrrTrend.icon} {metrics.mrrVsAverage > 0 ? '+' : ''}
             ${Math.abs(metrics.mrrVsAverage).toFixed(0)}
           </p>
-          <p className="text-xs text-gray-500">{mrrTrend.text}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{mrrTrend.text}</p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Channels</p>
+        <div className="text-center p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Channels</p>
           <p className={`text-lg font-semibold ${channelTrend.color}`}>
             {channelTrend.icon} {metrics.channelCountVsAverage > 0 ? '+' : ''}
             {metrics.channelCountVsAverage.toFixed(1)}
           </p>
-          <p className="text-xs text-gray-500">{channelTrend.text}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{channelTrend.text}</p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Percentile</p>
-          <p className="text-lg font-semibold text-blue-600" data-testid="percentile-rank">
+        <div className="text-center p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Percentile</p>
+          <p className="text-lg font-semibold text-blue-600 dark:text-blue-400" data-testid="percentile-rank">
             Top {100 - metrics.percentileRank}%
           </p>
-          <p className="text-xs text-gray-500">of customers</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">of customers</p>
         </div>
       </div>
     </Card>
@@ -448,9 +452,10 @@ function ComparativeMetricsSection({ metrics }: ComparativeMetricsSectionProps):
  */
 interface TimelineSectionProps {
   timeline: CustomerTimelineDTO | null;
+  lastCsContactDate: string | null;
 }
 
-function TimelineSection({ timeline }: TimelineSectionProps): JSX.Element {
+function TimelineSection({ timeline, lastCsContactDate }: TimelineSectionProps): JSX.Element {
   if (!timeline) {
     return (
       <Card data-testid="timeline-section">
@@ -475,12 +480,17 @@ function TimelineSection({ timeline }: TimelineSectionProps): JSX.Element {
 
   const badge = categoryBadge[timeline.accountAgeCategory];
 
+  // Calculate days since last CS contact
+  const daysSinceLastCsContact = lastCsContactDate
+    ? Math.floor((Date.now() - new Date(lastCsContactDate).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
   return (
     <Card data-testid="timeline-section">
       <SectionHeader
         title="Timeline"
         icon={
-          <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
@@ -489,24 +499,37 @@ function TimelineSection({ timeline }: TimelineSectionProps): JSX.Element {
         <div className="flex items-center gap-2">
           <Badge variant={badge.variant}>{badge.label}</Badge>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Account Created</p>
-            <p className="font-medium text-gray-900" data-testid="created-date">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Account Created</p>
+            <p className="font-medium text-gray-900 dark:text-white" data-testid="created-date">
               {formatDate(timeline.createdDate)}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {timeline.daysSinceCreation} days ago
             </p>
           </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Last Login</p>
-            <p className="font-medium text-gray-900" data-testid="last-login">
-              {formatDate(timeline.lastLoginDate)}
+          <div className="p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Last Login</p>
+            <p className="font-medium text-gray-900 dark:text-white" data-testid="last-login">
+              {timeline.lastLoginDate ? formatDate(timeline.lastLoginDate) : 'Never logged in'}
             </p>
-            <p className="text-xs text-gray-500">
-              {formatRelativeTime(timeline.daysSinceLastLogin)}
+            {timeline.daysSinceLastLogin !== null && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {formatRelativeTime(timeline.daysSinceLastLogin)}
+              </p>
+            )}
+          </div>
+          <div className="p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Last CS Contact</p>
+            <p className="font-medium text-gray-900 dark:text-white" data-testid="last-cs-contact">
+              {lastCsContactDate ? formatDate(lastCsContactDate) : 'No contact recorded'}
             </p>
+            {daysSinceLastCsContact !== null && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {formatRelativeTime(daysSinceLastCsContact)}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -592,7 +615,7 @@ function CustomerDetailContent({
         <CustomerInfoSection customer={customer} />
         <FinancialSection customer={customer} />
         <ChannelsSection customer={customer} />
-        <TimelineSection timeline={timeline} />
+        <TimelineSection timeline={timeline} lastCsContactDate={customer.lastCsContactDate} />
       </div>
 
       {/* Health breakdown - full width */}
@@ -602,30 +625,6 @@ function CustomerDetailContent({
       <ComparativeMetricsSection metrics={comparativeMetrics} />
     </div>
   );
-}
-
-/**
- * Convert CustomerSummaryDTO to CustomerDTO for display
- * Some fields are not available in summary, so we use defaults
- */
-function summaryToDto(summary: CustomerSummaryDTO): CustomerDTO {
-  return {
-    id: summary.id,
-    accountOwner: summary.accountOwner,
-    latestLogin: summary.latestLogin,
-    createdDate: '', // Not available in summary
-    billingCountry: summary.billingCountry,
-    accountType: summary.accountType,
-    languages: [], // Not available in summary
-    status: summary.status,
-    accountStatus: '', // Not available in summary
-    propertyType: '', // Not available in summary
-    mrr: summary.mrr,
-    currency: 'USD', // Default currency
-    channels: [], // Not available in summary - only count
-    healthScore: summary.healthScore,
-    healthClassification: summary.healthClassification,
-  };
 }
 
 /**
@@ -640,15 +639,36 @@ function summaryToDto(summary: CustomerSummaryDTO): CustomerDTO {
  */
 export function CustomerDetail(): JSX.Element {
   const { customerId } = useParams<{ customerId: string }>();
-  const customers = useCustomerStore((state) => state.customers);
+  const [customerDetails, setCustomerDetails] = useState<GetCustomerDetailsOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Find the customer from the customers array
-  const customer = useMemo(() => {
-    const summary = customers.find((c) => c.id === customerId);
-    return summary ? summaryToDto(summary) : null;
-  }, [customers, customerId]);
+  // Fetch customer details using the use case
+  const fetchCustomerDetails = useCallback(async () => {
+    if (!customerId) {
+      setError('No customer ID provided');
+      setIsLoading(false);
+      return;
+    }
 
-  const isLoading = false; // Will be connected to data fetching later
+    setIsLoading(true);
+    setError(null);
+
+    const useCases = compositionRoot.getUseCases();
+    const result = useCases.getCustomerDetails.execute({ customerId });
+
+    if (result.success) {
+      setCustomerDetails(result.value);
+    } else {
+      setError(result.error);
+    }
+    setIsLoading(false);
+  }, [customerId]);
+
+  // Fetch customer details on mount and when customerId changes
+  useEffect(() => {
+    fetchCustomerDetails();
+  }, [fetchCustomerDetails]);
 
   if (isLoading) {
     return (
@@ -658,8 +678,8 @@ export function CustomerDetail(): JSX.Element {
     );
   }
 
-  // Check if we have customer data
-  if (!customer) {
+  // Check if we have customer data or if there was an error
+  if (error || !customerDetails) {
     return (
       <PageErrorBoundary pageName="Customer Detail">
         <CustomerNotFound customerId={customerId} />
@@ -667,16 +687,13 @@ export function CustomerDetail(): JSX.Element {
     );
   }
 
-  // For now, we'll show the basic customer info
-  // Health breakdown, comparative metrics, and timeline will be added
-  // when we connect to the GetCustomerDetailsUseCase
   return (
     <PageErrorBoundary pageName="Customer Detail">
       <CustomerDetailContent
-        customer={customer}
-        healthBreakdown={null}
-        comparativeMetrics={null}
-        timeline={null}
+        customer={customerDetails.customer}
+        healthBreakdown={customerDetails.healthScore}
+        comparativeMetrics={customerDetails.comparativeMetrics}
+        timeline={customerDetails.timeline}
       />
     </PageErrorBoundary>
   );

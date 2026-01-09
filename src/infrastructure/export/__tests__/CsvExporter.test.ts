@@ -10,8 +10,10 @@ function createTestCustomer(overrides: Partial<CustomerProps> = {}): Customer {
   const defaults: CustomerProps = {
     id: 'CUST-001',
     accountOwner: 'John Smith',
+    accountName: 'Smith Hotels',
     latestLogin: new Date('2024-01-15T10:30:00Z'),
     createdDate: new Date('2023-01-01T00:00:00Z'),
+    lastCsContactDate: new Date('2024-01-10'),
     billingCountry: 'Sweden',
     accountType: AccountType.Pro,
     languages: ['English', 'Swedish'],

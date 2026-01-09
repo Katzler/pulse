@@ -1,5 +1,3 @@
-import { useRef } from 'react';
-
 import { useFileUpload, type UseFileUploadOptions } from '@presentation/hooks';
 
 import { Button } from './Button';
@@ -24,7 +22,7 @@ export interface FileUploadProps extends UseFileUploadOptions {
 function UploadIcon() {
   return (
     <svg
-      className="h-12 w-12 text-gray-400"
+      className="h-12 w-12 text-gray-400 dark:text-gray-500"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -46,7 +44,7 @@ function UploadIcon() {
 function FileIcon() {
   return (
     <svg
-      className="h-8 w-8 text-blue-500"
+      className="h-8 w-8 text-blue-500 dark:text-blue-400"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -85,7 +83,6 @@ export function FileUpload({
   accept = '.csv',
   ...options
 }: FileUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const {
     file,
     error,
@@ -98,12 +95,12 @@ export function FileUpload({
     handleDragLeave,
     clearFile,
     openFileDialog,
+    inputRef,
   } = useFileUpload({
     accept,
     ...options,
   });
 
-  // Override inputRef with our local ref
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e);
   };
@@ -111,10 +108,10 @@ export function FileUpload({
   const containerClasses = [
     'relative rounded-lg border-2 border-dashed p-6 transition-colors',
     isDragActive && !disabled
-      ? 'border-blue-400 bg-blue-50'
+      ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
       : error
-        ? 'border-red-300 bg-red-50'
-        : 'border-gray-300 hover:border-gray-400',
+        ? 'border-red-300 bg-red-50 dark:bg-red-900/20'
+        : 'border-gray-300 dark:border-surface-600 hover:border-gray-400 dark:hover:border-surface-500',
     disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
     className,
   ]
@@ -154,18 +151,18 @@ export function FileUpload({
         {!file ? (
           <div className="flex flex-col items-center text-center">
             <UploadIcon />
-            <p className="mt-4 text-sm font-medium text-gray-900">{label}</p>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-4 text-sm font-medium text-gray-900 dark:text-white">{label}</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {isDragActive ? 'Drop the file here' : 'Drag and drop or click to browse'}
             </p>
-            {helperText && <p className="mt-2 text-xs text-gray-400">{helperText}</p>}
+            {helperText && <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">{helperText}</p>}
           </div>
         ) : (
           <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
             <FileIcon />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-              <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{file.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</p>
             </div>
             <Button
               variant="ghost"
@@ -184,7 +181,7 @@ export function FileUpload({
       </div>
 
       {error && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
           {error}
         </p>
       )}

@@ -36,6 +36,7 @@ export {
   type MetricTrend,
   UsersIcon,
 } from './MetricCard';
+export { ThemeToggle, type ThemeToggleProps } from './ThemeToggle';
 export { Toast, type ToastProps } from './Toast';
 export { ToastContainer, type ToastContainerProps } from './ToastContainer';
 export { InfoTooltip, type InfoTooltipProps, Tooltip, type TooltipProps } from './Tooltip';

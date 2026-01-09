@@ -21,11 +21,11 @@ export interface AtRiskCustomersWidgetProps {
 function getHealthBadgeClasses(classification: string): string {
   switch (classification) {
     case 'critical':
-      return 'bg-red-100 text-red-700 border-red-200';
+      return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
     case 'at-risk':
-      return 'bg-orange-100 text-orange-700 border-orange-200';
+      return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
     default:
-      return 'bg-gray-100 text-gray-700 border-gray-200';
+      return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
   }
 }
 
@@ -42,7 +42,11 @@ function formatMrr(mrr: number): string {
 /**
  * Format days since last login
  */
-function formatLastLogin(latestLogin: string): string {
+function formatLastLogin(latestLogin: string | null): string {
+  if (!latestLogin) {
+    return 'Never logged in';
+  }
+
   const loginDate = new Date(latestLogin);
   const now = new Date();
   const diffTime = now.getTime() - loginDate.getTime();
@@ -65,11 +69,11 @@ function formatLastLogin(latestLogin: string): string {
 function getHealthScoreClasses(classification: string): string {
   switch (classification) {
     case 'critical':
-      return 'text-red-600 bg-red-50';
+      return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30';
     case 'at-risk':
-      return 'text-orange-600 bg-orange-50';
+      return 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/30';
     default:
-      return 'text-gray-600 bg-gray-50';
+      return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800';
   }
 }
 
@@ -98,8 +102,8 @@ function CustomerRow({
       {/* Customer Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-medium text-gray-900 truncate">
-            {customer.accountOwner}
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+            {customer.accountName || customer.accountOwner} - {customer.id}
           </p>
           <span
             className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border ${badgeClasses}`}
@@ -107,17 +111,17 @@ function CustomerRow({
             {customer.healthClassification === 'critical' ? 'Critical' : 'At Risk'}
           </span>
         </div>
-        <p className="text-xs text-gray-500">
-          ID: {customer.id} • {customer.status} • {customer.accountType}
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {customer.accountOwner} • {customer.status} • {customer.accountType}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Last login: {formatLastLogin(customer.latestLogin)} • {customer.billingCountry}
         </p>
       </div>
 
       {/* MRR */}
       <div className="flex-shrink-0 text-right">
-        <span className="text-sm font-medium text-gray-900">
+        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
           {formatMrr(customer.mrr)}/mo
         </span>
       </div>
@@ -129,8 +133,8 @@ function CustomerRow({
       <button
         type="button"
         onClick={() => onClick(customer.id)}
-        className="w-full px-4 py-3 hover:bg-gray-50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-        aria-label={`View ${customer.accountOwner}, ID ${customer.id}, health score ${customer.healthScore}, ${customer.billingCountry}`}
+        className="w-full px-4 py-3 hover:bg-gray-50 dark:hover:bg-surface-700 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        aria-label={`View Customer ID ${customer.id}, ${customer.accountOwner}, health score ${customer.healthScore}, ${customer.billingCountry}`}
       >
         {content}
       </button>
@@ -146,9 +150,9 @@ function CustomerRow({
 function EmptyState(): JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-4">
-      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+      <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3">
         <svg
-          className="w-6 h-6 text-green-600"
+          className="w-6 h-6 text-green-600 dark:text-green-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -162,8 +166,8 @@ function EmptyState(): JSX.Element {
           />
         </svg>
       </div>
-      <p className="text-sm font-medium text-gray-700">No at-risk customers</p>
-      <p className="text-xs text-gray-500 text-center mt-1">
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No at-risk customers</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
         All customers are in good health
       </p>
     </div>
@@ -214,7 +218,7 @@ export function AtRiskCustomersWidget({
   return (
     <div data-testid="at-risk-customers-widget">
       {/* Customer list */}
-      <div className="divide-y divide-gray-100 -mx-4">
+      <div className="divide-y divide-gray-100 dark:divide-surface-700 -mx-4">
         {atRiskCustomers.map((customer) => (
           <CustomerRow
             key={customer.id}
@@ -226,10 +230,10 @@ export function AtRiskCustomersWidget({
 
       {/* Footer with link to see all */}
       {totalAtRisk > maxDisplay && (
-        <div className="mt-4 pt-3 border-t border-gray-100 text-center">
+        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-surface-700 text-center">
           <Link
             to="/customers?filter=at-risk"
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           >
             View all {totalAtRisk} at-risk customers →
           </Link>

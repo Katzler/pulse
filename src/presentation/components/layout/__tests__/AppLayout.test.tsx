@@ -2,24 +2,28 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { ThemeProvider } from '@presentation/context';
+
 import { AppLayout } from '../AppLayout';
 
 const renderWithRouter = (initialEntries = ['/']) => {
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route index element={<div>Test Page Content</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<div>Test Page Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </ThemeProvider>
   );
 };
 
 describe('AppLayout', () => {
   it('renders header', () => {
     renderWithRouter();
-    expect(screen.getByText('Customer Success')).toBeInTheDocument();
+    expect(screen.getByText('Pulse')).toBeInTheDocument();
   });
 
   it('renders child content via Outlet', () => {

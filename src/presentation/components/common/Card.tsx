@@ -18,8 +18,8 @@ const paddingStyles = {
 };
 
 const variantStyles = {
-  default: 'bg-white shadow-sm',
-  outlined: 'bg-white border border-gray-200',
+  default: 'bg-white shadow-sm dark:bg-surface-800',
+  outlined: 'bg-white border border-gray-200 dark:bg-surface-800 dark:border-surface-700',
 };
 
 /**
@@ -44,13 +44,13 @@ export function Card({
       data-testid={testId}
     >
       {title && (
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <div className="border-b border-gray-200 dark:border-surface-700 px-4 py-3">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h3>
         </div>
       )}
       <div className={paddingStyles[padding]}>{children}</div>
       {footer && (
-        <div className="border-t border-gray-200 px-4 py-3 bg-gray-50 rounded-b-lg">
+        <div className="border-t border-gray-200 dark:border-surface-700 px-4 py-3 bg-gray-50 dark:bg-surface-900 rounded-b-lg">
           {footer}
         </div>
       )}

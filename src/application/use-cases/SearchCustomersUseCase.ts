@@ -236,9 +236,13 @@ export class SearchCustomersUseCase {
         break;
 
       case 'lastLogin':
-        sorted.sort((a, b) =>
-          (a.latestLogin.getTime() - b.latestLogin.getTime()) * multiplier
-        );
+        sorted.sort((a, b) => {
+          // Handle null latestLogin values
+          if (!a.latestLogin && !b.latestLogin) return 0;
+          if (!a.latestLogin) return 1 * multiplier; // null values go to the end
+          if (!b.latestLogin) return -1 * multiplier;
+          return (a.latestLogin.getTime() - b.latestLogin.getTime()) * multiplier;
+        });
         break;
 
       default:

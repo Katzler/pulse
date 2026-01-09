@@ -99,8 +99,10 @@ function mapToImportRecord(record: RawCustomerRecord) {
   return {
     'Sirvoy Customer ID': record['Sirvoy Customer ID'],
     'Account Owner': record['Account Owner'],
+    'Account Name': record['Account Name'],
     'Latest Login': record['Latest Login'],
     'Created Date': record['Created Date'],
+    'Last Customer Success Contact Date': record['Last Customer Success Contact Date'],
     'Billing Country': record['Billing Country'],
     'Account Type': record['Account Type'],
     Languages: record['Language'],
@@ -195,13 +197,15 @@ export function Import() {
       return {
         id: customer.id,
         accountOwner: customer.accountOwner,
+        accountName: customer.accountName,
         status: customer.isActive() ? 'Active Customer' : 'Inactive Customer',
         accountType: customer.accountType,
         healthScore,
         healthClassification: classificationString,
         mrr: customer.mrr,
         channelCount: customer.channels.length,
-        latestLogin: customer.latestLogin.toISOString(),
+        latestLogin: customer.latestLogin?.toISOString() ?? null,
+        lastCsContactDate: customer.lastCsContactDate?.toISOString() ?? null,
         billingCountry: customer.billingCountry,
       };
     });
@@ -355,13 +359,13 @@ export function Import() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Import Data</h1>
-        <p className="text-gray-600">Upload CSV files to import customer data</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Import Data</h1>
+        <p className="text-gray-600 dark:text-gray-400">Upload CSV files to import customer data</p>
       </div>
 
       {!importResult ? (
         <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <div className="rounded-lg border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6">
             <FileUpload
               label="Upload customer CSV file"
               helperText="CSV files up to 10MB with standard customer data format"
@@ -383,16 +387,18 @@ export function Import() {
             </div>
           )}
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Expected CSV Format</h2>
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="rounded-lg border border-gray-200 dark:border-surface-700 bg-gray-50 dark:bg-surface-800 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Expected CSV Format</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Your CSV file should contain the following columns:
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
               {[
                 'Account Owner',
+                'Account Name',
                 'Latest Login',
                 'Created Date',
+                'Last Customer Success Contact Date',
                 'Billing Country',
                 'Account Type',
                 'Language',
@@ -404,7 +410,7 @@ export function Import() {
                 'MRR (converted)',
                 'Channels',
               ].map((header) => (
-                <code key={header} className="bg-white px-2 py-1 rounded border text-gray-700">
+                <code key={header} className="bg-white dark:bg-surface-700 px-2 py-1 rounded border dark:border-surface-600 text-gray-700 dark:text-gray-300">
                   {header}
                 </code>
               ))}
@@ -414,7 +420,7 @@ export function Import() {
       ) : (
         <div className="space-y-6">
           {/* Result Summary */}
-          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+          <div className="rounded-lg border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-8 text-center">
             <div className="flex justify-center mb-4">
               {importResult.importedCount === importResult.totalRows && importResult.totalRows > 0 ? (
                 <CheckIcon />
@@ -424,14 +430,14 @@ export function Import() {
                 <ErrorIcon />
               )}
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               {importResult.importedCount === importResult.totalRows && importResult.totalRows > 0
                 ? 'Import Successful'
                 : importResult.importedCount > 0
                   ? 'Import Completed with Errors'
                   : 'Import Failed'}
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {importResult.importedCount} of {importResult.totalRows} customers imported
               {importResult.errorCount > 0 && ` (${importResult.errorCount} errors)`}
             </p>
@@ -455,22 +461,22 @@ export function Import() {
 
           {/* Error Details */}
           {importResult.errors.length > 0 && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-              <h3 className="text-lg font-semibold text-red-900 mb-3">
+            <div className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 p-6">
+              <h3 className="text-lg font-semibold text-red-900 dark:text-red-300 mb-3">
                 Import Errors ({importResult.errors.length})
               </h3>
               <div className="max-h-64 overflow-y-auto">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="text-left text-red-700">
+                    <tr className="text-left text-red-700 dark:text-red-400">
                       <th className="pb-2 pr-4">Row</th>
                       <th className="pb-2 pr-4">Field</th>
                       <th className="pb-2">Error</th>
                     </tr>
                   </thead>
-                  <tbody className="text-red-800">
+                  <tbody className="text-red-800 dark:text-red-300">
                     {importResult.errors.slice(0, 50).map((error, index) => (
-                      <tr key={index} className="border-t border-red-200">
+                      <tr key={index} className="border-t border-red-200 dark:border-red-800/50">
                         <td className="py-2 pr-4">{error.row}</td>
                         <td className="py-2 pr-4">{error.field}</td>
                         <td className="py-2">{error.message}</td>
@@ -479,7 +485,7 @@ export function Import() {
                   </tbody>
                 </table>
                 {importResult.errors.length > 50 && (
-                  <p className="mt-3 text-red-700">
+                  <p className="mt-3 text-red-700 dark:text-red-400">
                     ...and {importResult.errors.length - 50} more errors
                   </p>
                 )}

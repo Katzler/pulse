@@ -7,8 +7,10 @@ import { Customer, type CustomerProps } from './Customer';
 const createValidCustomerProps = (overrides?: Partial<CustomerProps>): CustomerProps => ({
   id: 'CUST-001',
   accountOwner: 'John Smith',
+  accountName: 'Acme Hotels',
   latestLogin: new Date('2024-01-15T10:30:00'),
   createdDate: new Date('2023-01-01'),
+  lastCsContactDate: new Date('2024-01-10'),
   billingCountry: 'USA',
   accountType: AccountType.Pro,
   languages: ['English', 'Spanish'],
@@ -162,6 +164,70 @@ describe('Customer Entity', () => {
         expect(days).toBeGreaterThanOrEqual(2);
         expect(days).toBeLessThanOrEqual(4);
       }
+    });
+
+    it('returns null when customer has never logged in', () => {
+      const props = createValidCustomerProps({
+        latestLogin: null,
+      });
+      const result = Customer.create(props);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.daysSinceLastLogin()).toBeNull();
+      }
+    });
+  });
+
+  describe('hasLoggedIn()', () => {
+    it('returns true when customer has logged in', () => {
+      const props = createValidCustomerProps({
+        latestLogin: new Date('2024-01-15'),
+      });
+      const result = Customer.create(props);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.hasLoggedIn()).toBe(true);
+      }
+    });
+
+    it('returns false when customer has never logged in', () => {
+      const props = createValidCustomerProps({
+        latestLogin: null,
+      });
+      const result = Customer.create(props);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.hasLoggedIn()).toBe(false);
+      }
+    });
+  });
+
+  describe('latestLogin null handling', () => {
+    it('allows null latestLogin (customer never logged in)', () => {
+      const props = createValidCustomerProps({
+        latestLogin: null,
+      });
+      const result = Customer.create(props);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.latestLogin).toBeNull();
+      }
+    });
+
+    it('skips login date validation when latestLogin is null', () => {
+      // Even though createdDate is in the future relative to null login,
+      // validation should pass because there's no login to compare
+      const props = createValidCustomerProps({
+        latestLogin: null,
+        createdDate: new Date('2024-01-01'),
+      });
+      const result = Customer.create(props);
+
+      expect(result.success).toBe(true);
     });
   });
 

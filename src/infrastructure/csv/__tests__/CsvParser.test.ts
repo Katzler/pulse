@@ -18,8 +18,10 @@ describe('CsvParser', () => {
   const createTestRow = (overrides: Partial<Record<string, string>> = {}): string[] => {
     const defaults: Record<string, string> = {
       'Account Owner': 'John Smith',
+      'Account Name': 'Acme Hotels',
       'Latest Login': '15/01/2024, 10:00',
       'Created Date': '01/01/2023',
+      'Last Customer Success Contact Date': '10/01/2024',
       'Billing Country': 'Sweden',
       'Account Type': 'Pro',
       Language: 'English; Swedish',
@@ -94,8 +96,8 @@ describe('CsvParser', () => {
     });
 
     it('handles quoted fields with commas', () => {
-      const csv = `"Account Owner","Latest Login","Created Date","Billing Country","Account Type","Language","Status","Sirvoy Account Status","Sirvoy Customer ID","Property Type","MRR (converted) Currency","MRR (converted)","Channels"
-"Smith, John","15/01/2024, 10:00","01/01/2023","Sweden","Pro","English","Active Customer","Loyal","CUST-001","Hotels","SEK","1500.00","Booking.com"`;
+      const csv = `"Account Owner","Account Name","Latest Login","Created Date","Last Customer Success Contact Date","Billing Country","Account Type","Language","Status","Sirvoy Account Status","Sirvoy Customer ID","Property Type","MRR (converted) Currency","MRR (converted)","Channels"
+"Smith, John","Acme Hotels","15/01/2024, 10:00","01/01/2023","10/01/2024","Sweden","Pro","English","Active Customer","Loyal","CUST-001","Hotels","SEK","1500.00","Booking.com"`;
 
       const result = parser.parse(csv);
 
@@ -106,8 +108,8 @@ describe('CsvParser', () => {
     });
 
     it('handles escaped quotes in fields', () => {
-      const csv = `"Account Owner","Latest Login","Created Date","Billing Country","Account Type","Language","Status","Sirvoy Account Status","Sirvoy Customer ID","Property Type","MRR (converted) Currency","MRR (converted)","Channels"
-"John ""The Boss"" Smith","15/01/2024, 10:00","01/01/2023","Sweden","Pro","English","Active Customer","Loyal","CUST-001","Hotels","SEK","1500.00","Booking.com"`;
+      const csv = `"Account Owner","Account Name","Latest Login","Created Date","Last Customer Success Contact Date","Billing Country","Account Type","Language","Status","Sirvoy Account Status","Sirvoy Customer ID","Property Type","MRR (converted) Currency","MRR (converted)","Channels"
+"John ""The Boss"" Smith","Acme Hotels","15/01/2024, 10:00","01/01/2023","10/01/2024","Sweden","Pro","English","Active Customer","Loyal","CUST-001","Hotels","SEK","1500.00","Booking.com"`;
 
       const result = parser.parse(csv);
 

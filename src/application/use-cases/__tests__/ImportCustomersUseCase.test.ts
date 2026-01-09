@@ -14,8 +14,10 @@ function createTestRecord(overrides: Partial<RawCsvRecord> = {}): RawCsvRecord {
   return {
     'Sirvoy Customer ID': 'CUST-001',
     'Account Owner': 'John Smith',
+    'Account Name': 'Smith Hotels',
     'Latest Login': '15/01/2024, 10:00',
     'Created Date': '01/01/2023',
+    'Last Customer Success Contact Date': '10/01/2024',
     'Billing Country': 'Sweden',
     'Account Type': 'Pro',
     Languages: 'English;Swedish',
@@ -352,6 +354,50 @@ describe('ImportCustomersUseCase', () => {
         expect(result.value.totalRows).toBe(0);
         expect(result.value.importedCount).toBe(0);
         expect(result.value.errorCount).toBe(0);
+      }
+    });
+
+    it('handles empty Latest Login (customer never logged in)', () => {
+      const records = [createTestRecord({ 'Latest Login': '' })];
+
+      const result = useCase.execute({ records });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.importedCount).toBe(1);
+        expect(result.value.errorCount).toBe(0);
+        const stored = mockRepository.getStoredCustomers();
+        expect(stored[0].latestLogin).toBeNull();
+        expect(stored[0].hasLoggedIn()).toBe(false);
+      }
+    });
+
+    it('handles whitespace-only Latest Login as empty', () => {
+      const records = [createTestRecord({ 'Latest Login': '   ' })];
+
+      const result = useCase.execute({ records });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.importedCount).toBe(1);
+        expect(result.value.errorCount).toBe(0);
+        const stored = mockRepository.getStoredCustomers();
+        expect(stored[0].latestLogin).toBeNull();
+      }
+    });
+
+    it('calculates health score with 0 login recency points for null latestLogin', () => {
+      const records = [createTestRecord({ 'Latest Login': '' })];
+
+      const result = useCase.execute({ records });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const score = result.value.healthScores.get('CUST-001');
+        expect(score).toBeDefined();
+        // Score should not include login recency points (25 max)
+        // Active (30) + Account Type Pro (15) + MRR $1500 (8) + 2 channels (8) = 61
+        expect(score?.value).toBeLessThanOrEqual(61);
       }
     });
   });

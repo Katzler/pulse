@@ -152,7 +152,9 @@ export class GetCustomerDetailsUseCase {
     const lastLoginDate = customer.latestLogin;
 
     const daysSinceCreation = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
-    const daysSinceLastLogin = Math.floor((now.getTime() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysSinceLastLogin = lastLoginDate
+      ? Math.floor((now.getTime() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
 
     // Determine account age category
     let accountAgeCategory: 'new' | 'established' | 'veteran';
@@ -167,7 +169,7 @@ export class GetCustomerDetailsUseCase {
     return {
       createdDate: createdDate.toISOString(),
       daysSinceCreation,
-      lastLoginDate: lastLoginDate.toISOString(),
+      lastLoginDate: lastLoginDate?.toISOString() ?? null,
       daysSinceLastLogin,
       accountAgeCategory,
     };

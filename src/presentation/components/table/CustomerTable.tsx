@@ -14,10 +14,12 @@ export type CustomerSortKey =
   | 'healthScore'
   | 'id'
   | 'accountOwner'
+  | 'accountName'
   | 'status'
   | 'accountType'
   | 'mrr'
-  | 'channelCount';
+  | 'channelCount'
+  | 'lastCsContactDate';
 
 /**
  * Props for CustomerTable component
@@ -50,12 +52,12 @@ export interface CustomerTableProps {
  */
 function getHealthIndicator(score: number): { color: string; bgColor: string; label: string } {
   if (score >= 70) {
-    return { color: 'text-green-600', bgColor: 'bg-green-100', label: 'Healthy' };
+    return { color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30', label: 'Healthy' };
   }
   if (score >= 30) {
-    return { color: 'text-orange-500', bgColor: 'bg-orange-100', label: 'At Risk' };
+    return { color: 'text-orange-500 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30', label: 'At Risk' };
   }
-  return { color: 'text-red-600', bgColor: 'bg-red-100', label: 'Critical' };
+  return { color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30', label: 'Critical' };
 }
 
 /**
@@ -66,6 +68,18 @@ function formatMrr(mrr: number): string {
     return `$${(mrr / 1000).toFixed(1)}K`;
   }
   return `$${mrr.toLocaleString()}`;
+}
+
+/**
+ * Format date for display (short format)
+ */
+function formatDate(isoString: string | null): string {
+  if (!isoString) return '-';
+  return new Date(isoString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+  });
 }
 
 /**
@@ -103,14 +117,14 @@ function SortableHeader({
 
   return (
     <th
-      className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}
+      className={`px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${className}`}
     >
       <button
         type="button"
         onClick={() => onSort?.(sortKey)}
         className={`
-          inline-flex items-center gap-1 hover:text-gray-700 focus:outline-none focus:text-gray-700
-          ${isActive ? 'text-gray-900 font-semibold' : ''}
+          inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:text-gray-700 dark:focus:text-gray-200
+          ${isActive ? 'text-gray-900 dark:text-white font-semibold' : ''}
         `}
         aria-label={`Sort by ${children}, ${isActive ? (sortOrder === 'asc' ? 'descending' : 'ascending') : 'ascending'}`}
       >
@@ -149,8 +163,8 @@ function StatusBadge({ status }: { status: string }): JSX.Element {
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
         isActive
-          ? 'bg-green-100 text-green-800'
-          : 'bg-gray-100 text-gray-800'
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+          : 'bg-gray-100 text-gray-800 dark:bg-surface-700 dark:text-gray-300'
       }`}
     >
       {status.replace(' Customer', '')}
@@ -165,28 +179,34 @@ function SkeletonRow(): JSX.Element {
   return (
     <tr className="animate-pulse">
       <td className="px-4 py-4">
-        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+        <div className="w-8 h-8 bg-gray-200 dark:bg-surface-700 rounded-full" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-16 h-4 bg-gray-200 rounded" />
+        <div className="w-16 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-24 h-4 bg-gray-200 rounded" />
+        <div className="w-24 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-16 h-4 bg-gray-200 rounded" />
+        <div className="w-28 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-16 h-4 bg-gray-200 rounded" />
+        <div className="w-16 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-16 h-4 bg-gray-200 rounded" />
+        <div className="w-16 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-8 h-4 bg-gray-200 rounded" />
+        <div className="w-16 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
       <td className="px-4 py-4">
-        <div className="w-12 h-6 bg-gray-200 rounded" />
+        <div className="w-8 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
+      </td>
+      <td className="px-4 py-4">
+        <div className="w-20 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
+      </td>
+      <td className="px-4 py-4">
+        <div className="w-12 h-6 bg-gray-200 dark:bg-surface-700 rounded" />
       </td>
     </tr>
   );
@@ -198,9 +218,9 @@ function SkeletonRow(): JSX.Element {
 function EmptyState({ onClearSearch }: { onClearSearch?: (() => void) | undefined }): JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4" data-testid="empty-state">
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-surface-700 flex items-center justify-center mb-4">
         <svg
-          className="w-8 h-8 text-gray-400"
+          className="w-8 h-8 text-gray-400 dark:text-gray-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -214,13 +234,13 @@ function EmptyState({ onClearSearch }: { onClearSearch?: (() => void) | undefine
           />
         </svg>
       </div>
-      <p className="text-lg font-medium text-gray-900 mb-1">No customers found</p>
-      <p className="text-sm text-gray-500 mb-4">Try adjusting your search or filters</p>
+      <p className="text-lg font-medium text-gray-900 dark:text-white mb-1">No customers found</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Try adjusting your search or filters</p>
       {onClearSearch && (
         <button
           type="button"
           onClick={onClearSearch}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-surface-800 rounded"
         >
           Clear Search
         </button>
@@ -243,11 +263,11 @@ function Pagination({
 }): JSX.Element {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 border-t border-gray-200"
+      className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-surface-700"
       role="navigation"
       aria-label="Pagination"
     >
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         Page <span className="font-medium">{currentPage}</span> of{' '}
         <span className="font-medium">{totalPages}</span>
       </p>
@@ -260,8 +280,8 @@ function Pagination({
             px-3 py-1.5 text-sm font-medium rounded-lg border
             ${
               currentPage <= 1
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                ? 'border-gray-200 dark:border-surface-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                : 'border-gray-300 dark:border-surface-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
             }
           `}
           aria-label="Previous page"
@@ -276,8 +296,8 @@ function Pagination({
             px-3 py-1.5 text-sm font-medium rounded-lg border
             ${
               currentPage >= totalPages
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                ? 'border-gray-200 dark:border-surface-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                : 'border-gray-300 dark:border-surface-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
             }
           `}
           aria-label="Next page"
@@ -312,18 +332,24 @@ function CustomerCard({
             {customer.healthScore}
           </span>
           <div>
-            <p className="text-sm font-medium text-gray-900">{customer.accountOwner}</p>
-            <p className="text-xs text-gray-500">ID: {customer.id}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{customer.accountName || customer.accountOwner}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{customer.accountOwner} • ID: {customer.id}</p>
           </div>
         </div>
-        <span className="text-sm font-medium text-gray-900">{formatMrr(customer.mrr)}</span>
+        <span className="text-sm font-medium text-gray-900 dark:text-white">{formatMrr(customer.mrr)}</span>
       </div>
-      <div className="flex items-center gap-2 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
         <StatusBadge status={customer.status} />
         <span>•</span>
         <span>{customer.accountType}</span>
         <span>•</span>
         <span>{customer.channelCount} channels</span>
+        {customer.lastCsContactDate && (
+          <>
+            <span>•</span>
+            <span>CS: {formatDate(customer.lastCsContactDate)}</span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -333,7 +359,7 @@ function CustomerCard({
       <button
         type="button"
         onClick={() => onClick(customer.id)}
-        className="w-full text-left border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+        className="w-full text-left border-b border-gray-200 dark:border-surface-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-surface-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
         aria-label={`View ${customer.accountOwner}, ID ${customer.id}, health score ${customer.healthScore}`}
       >
         {content}
@@ -341,7 +367,7 @@ function CustomerCard({
     );
   }
 
-  return <div className="border-b border-gray-200 last:border-b-0">{content}</div>;
+  return <div className="border-b border-gray-200 dark:border-surface-700 last:border-b-0">{content}</div>;
 }
 
 /**
@@ -375,23 +401,25 @@ export function CustomerTable({
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden" data-testid="customer-table">
+      <div className="bg-white dark:bg-surface-800 rounded-lg border border-gray-200 dark:border-surface-700 overflow-hidden" data-testid="customer-table">
         {/* Desktop skeleton */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-surface-700">
+            <thead className="bg-gray-50 dark:bg-surface-900">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Health</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MRR</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Channels</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Health</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Owner</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Account</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">MRR</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Channels</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Last CS</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-surface-800 divide-y divide-gray-200 dark:divide-surface-700">
               {Array.from({ length: 5 }).map((_, i) => (
                 <SkeletonRow key={i} />
               ))}
@@ -400,15 +428,15 @@ export function CustomerTable({
         </div>
 
         {/* Mobile skeleton */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden divide-y divide-gray-200 dark:divide-surface-700">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="p-4 animate-pulse">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                <div className="w-10 h-10 bg-gray-200 dark:bg-surface-700 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="w-32 h-4 bg-gray-200 rounded" />
-                  <div className="w-20 h-3 bg-gray-200 rounded" />
-                  <div className="w-48 h-3 bg-gray-200 rounded" />
+                  <div className="w-32 h-4 bg-gray-200 dark:bg-surface-700 rounded" />
+                  <div className="w-20 h-3 bg-gray-200 dark:bg-surface-700 rounded" />
+                  <div className="w-48 h-3 bg-gray-200 dark:bg-surface-700 rounded" />
                 </div>
               </div>
             </div>
@@ -425,18 +453,18 @@ export function CustomerTable({
   // Empty state
   if (customers.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200" data-testid="customer-table">
+      <div className="bg-white dark:bg-surface-800 rounded-lg border border-gray-200 dark:border-surface-700" data-testid="customer-table">
         <EmptyState onClearSearch={onClearSearch} />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden" data-testid="customer-table">
+    <div className="bg-white dark:bg-surface-800 rounded-lg border border-gray-200 dark:border-surface-700 overflow-hidden" data-testid="customer-table">
       {/* Desktop table view */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-surface-700">
+          <thead className="bg-gray-50 dark:bg-surface-900">
             <tr>
               <SortableHeader
                 sortKey="healthScore"
@@ -461,6 +489,14 @@ export function CustomerTable({
                 onSort={onSort}
               >
                 Owner
+              </SortableHeader>
+              <SortableHeader
+                sortKey="accountName"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              >
+                Account
               </SortableHeader>
               <SortableHeader
                 sortKey="status"
@@ -494,16 +530,24 @@ export function CustomerTable({
               >
                 Channels
               </SortableHeader>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <SortableHeader
+                sortKey="lastCsContactDate"
+                currentSortKey={sortKey}
+                sortOrder={sortOrder}
+                onSort={onSort}
+              >
+                Last CS
+              </SortableHeader>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Action
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-surface-800 divide-y divide-gray-200 dark:divide-surface-700">
             {customers.map((customer) => (
               <tr
                 key={customer.id}
-                className={onRowClick ? 'hover:bg-gray-50 cursor-pointer' : ''}
+                className={onRowClick ? 'hover:bg-gray-50 dark:hover:bg-surface-700 cursor-pointer' : ''}
                 onClick={() => onRowClick?.(customer.id)}
                 tabIndex={onRowClick ? 0 : undefined}
                 onKeyDown={(e) => {
@@ -518,23 +562,29 @@ export function CustomerTable({
                 <td className="px-4 py-4 whitespace-nowrap">
                   <HealthScoreCell score={customer.healthScore} />
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                   {customer.id}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {customer.accountOwner}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {customer.accountName || '-'}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <StatusBadge status={customer.status} />
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {customer.accountType}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {formatMrr(customer.mrr)}
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {customer.channelCount}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {formatDate(customer.lastCsContactDate)}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm">
                   {onRowClick ? (
@@ -544,12 +594,12 @@ export function CustomerTable({
                         e.stopPropagation();
                         onRowClick(customer.id);
                       }}
-                      className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                     >
                       View
                     </button>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-400 dark:text-gray-600">-</span>
                   )}
                 </td>
               </tr>

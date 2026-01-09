@@ -22,10 +22,10 @@ export interface CustomerTimelineDTO {
   createdDate: string;
   /** Number of days since account creation */
   daysSinceCreation: number;
-  /** Last login date as ISO string */
-  lastLoginDate: string;
-  /** Number of days since last login */
-  daysSinceLastLogin: number;
+  /** Last login date as ISO string, or null if never logged in */
+  lastLoginDate: string | null;
+  /** Number of days since last login, or null if never logged in */
+  daysSinceLastLogin: number | null;
   /** Account age category: "new" (<30 days), "established" (30-365 days), or "veteran" (>365 days) */
   accountAgeCategory: 'new' | 'established' | 'veteran';
 }

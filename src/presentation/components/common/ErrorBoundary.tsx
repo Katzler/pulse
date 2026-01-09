@@ -55,7 +55,7 @@ function ErrorIcon({ className = 'h-16 w-16' }: { className?: string }) {
 function ChartErrorIcon({ className = 'h-12 w-12' }: { className?: string }) {
   return (
     <svg
-      className={`${className} text-gray-400`}
+      className={`${className} text-gray-400 dark:text-gray-500`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -89,10 +89,10 @@ function DefaultFallback({
       role="alert"
     >
       <ErrorIcon />
-      <h2 className="mt-4 text-xl font-semibold text-gray-900">
+      <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
         Something went wrong
       </h2>
-      <p className="mt-2 text-sm text-gray-600 max-w-md">
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 max-w-md">
         {error?.message || 'An unexpected error occurred. Please try again.'}
       </p>
       {showRetry && (
@@ -114,14 +114,14 @@ function DefaultFallback({
 function RootFallback({ onRetry }: { onRetry: () => void }) {
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4"
+      className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-surface-950 px-4"
       role="alert"
     >
       <ErrorIcon className="h-20 w-20" />
-      <h1 className="mt-6 text-2xl font-bold text-gray-900">
+      <h1 className="mt-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
         Something went wrong
       </h1>
-      <p className="mt-2 text-gray-600 text-center max-w-md">
+      <p className="mt-2 text-gray-600 dark:text-gray-400 text-center max-w-md">
         We're sorry, but something unexpected happened. Please refresh the page to try again.
       </p>
       <div className="mt-8 flex gap-4">
@@ -159,10 +159,10 @@ function PageFallback({
       role="alert"
     >
       <ErrorIcon />
-      <h2 className="mt-4 text-xl font-semibold text-gray-900">
+      <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
         {pageName ? `Error loading ${pageName}` : 'Page error'}
       </h2>
-      <p className="mt-2 text-sm text-gray-600 max-w-md">
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 max-w-md">
         {error?.message || 'This page encountered an error. Please try again or go back to the dashboard.'}
       </p>
       <div className="mt-6 flex gap-4">
@@ -188,14 +188,14 @@ function PageFallback({
 function ChartFallback({ onRetry }: { onRetry: () => void }) {
   return (
     <div
-      className="flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-50 rounded-lg border border-gray-200"
+      className="flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-50 dark:bg-surface-800 rounded-lg border border-gray-200 dark:border-surface-700"
       role="alert"
     >
       <ChartErrorIcon />
-      <p className="mt-3 text-sm font-medium text-gray-700">
+      <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
         Chart could not be displayed
       </p>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
         There was a problem rendering this chart
       </p>
       <Button

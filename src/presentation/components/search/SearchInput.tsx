@@ -146,10 +146,11 @@ export function SearchInput({
           placeholder={placeholder}
           disabled={isLoading}
           className={`
-            block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-10
-            text-sm text-gray-900 placeholder-gray-500
+            block w-full rounded-lg border border-gray-300 dark:border-surface-600 py-2.5 pl-10 pr-10
+            text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+            bg-white dark:bg-surface-800
             focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
+            disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-surface-700 disabled:text-gray-500
           `}
           aria-label="Search customers"
         />
@@ -163,7 +164,7 @@ export function SearchInput({
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:text-gray-600 dark:focus:text-gray-300"
                 aria-label="Clear search"
               >
                 <ClearIcon />

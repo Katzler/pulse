@@ -2,20 +2,24 @@ import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { ThemeProvider } from '@presentation/context';
+
 import { Header } from '../Header';
 
 const renderWithRouter = (initialEntries = ['/']) => {
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Header />
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Header />
+      </MemoryRouter>
+    </ThemeProvider>
   );
 };
 
 describe('Header', () => {
   it('renders the application name', () => {
     renderWithRouter();
-    expect(screen.getByText('Customer Success')).toBeInTheDocument();
+    expect(screen.getByText('Pulse')).toBeInTheDocument();
   });
 
   it('renders navigation links', () => {
@@ -46,7 +50,7 @@ describe('Header', () => {
 
   it('logo links to home', () => {
     renderWithRouter();
-    const logoLink = screen.getByRole('link', { name: /customer success/i });
+    const logoLink = screen.getByRole('link', { name: /pulse/i });
     expect(logoLink).toHaveAttribute('href', '/');
   });
 });

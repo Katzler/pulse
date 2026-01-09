@@ -238,7 +238,7 @@ export function ExportButton({
     primary:
       'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-blue-300',
     secondary:
-      'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400',
+      'bg-white dark:bg-surface-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-surface-600 hover:bg-gray-50 dark:hover:bg-surface-700 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-surface-700 disabled:text-gray-400',
   };
 
   return (
@@ -264,7 +264,7 @@ export function ExportButton({
             <DownloadIcon />
             <span>Export</span>
             {recordCount !== undefined && recordCount > 0 && (
-              <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
+              <span className="text-xs bg-gray-200 dark:bg-surface-700 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded">
                 {recordCount}
               </span>
             )}
@@ -276,38 +276,38 @@ export function ExportButton({
       {/* Dropdown menu */}
       {isOpen && (
         <div
-          className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-lg bg-white dark:bg-surface-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-surface-700 focus:outline-none"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="export-menu"
           data-testid="export-dropdown"
         >
           <div className="p-1">
-            <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Export Format
             </div>
             {exportOptions.map((option) => (
               <button
                 key={option.format}
                 type="button"
-                className="w-full flex items-start gap-3 px-3 py-2 text-left rounded-md hover:bg-gray-100 focus:bg-gray-100 focus:outline-none transition-colors"
+                className="w-full flex items-start gap-3 px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-surface-700 focus:bg-gray-100 dark:focus:bg-surface-700 focus:outline-none transition-colors"
                 role="menuitem"
                 onClick={() => handleExport(option.format)}
                 onKeyDown={(e) => handleKeyDown(e, option.format)}
                 data-testid={`export-option-${option.format}`}
               >
-                <span className="text-gray-500 mt-0.5">{option.icon}</span>
+                <span className="text-gray-500 dark:text-gray-400 mt-0.5">{option.icon}</span>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {option.label}
                   </p>
-                  <p className="text-xs text-gray-500">{option.description}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{option.description}</p>
                 </div>
               </button>
             ))}
           </div>
           {recordCount !== undefined && (
-            <div className="border-t border-gray-100 px-3 py-2 text-xs text-gray-500">
+            <div className="border-t border-gray-100 dark:border-surface-700 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
               {recordCount} record{recordCount !== 1 ? 's' : ''} will be exported
             </div>
           )}

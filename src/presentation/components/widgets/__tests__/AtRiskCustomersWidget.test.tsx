@@ -12,6 +12,7 @@ const mockCustomers: CustomerSummaryDTO[] = [
   {
     id: '1',
     accountOwner: 'Hotel Alpha',
+    accountName: 'Alpha Hotels Inc',
     status: 'Inactive Customer',
     accountType: 'Pro',
     healthScore: 25,
@@ -19,11 +20,13 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 1500,
     channelCount: 3,
     latestLogin: new Date(Date.now() - 142 * 24 * 60 * 60 * 1000).toISOString(), // 142 days ago
+    lastCsContactDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'Germany',
   },
   {
     id: '2',
     accountOwner: 'Hotel Beta',
+    accountName: 'Beta Hospitality Group',
     status: 'Active Customer',
     accountType: 'Starter',
     healthScore: 45,
@@ -31,11 +34,13 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 500,
     channelCount: 2,
     latestLogin: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+    lastCsContactDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'France',
   },
   {
     id: '3',
     accountOwner: 'Hotel Gamma',
+    accountName: 'Gamma Resorts LLC',
     status: 'Active Customer',
     accountType: 'Pro',
     healthScore: 55,
@@ -43,11 +48,13 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 2000,
     channelCount: 4,
     latestLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    lastCsContactDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'Sweden',
   },
   {
     id: '4',
     accountOwner: 'Hotel Delta',
+    accountName: 'Delta Inn Group',
     status: 'Active Customer',
     accountType: 'Pro',
     healthScore: 85,
@@ -55,6 +62,7 @@ const mockCustomers: CustomerSummaryDTO[] = [
     mrr: 3000,
     channelCount: 5,
     latestLogin: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    lastCsContactDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     billingCountry: 'USA',
   },
 ];
@@ -74,9 +82,10 @@ describe('AtRiskCustomersWidget', () => {
     it('displays at-risk and critical customers', () => {
       renderWithRouter(<AtRiskCustomersWidget customers={mockCustomers} />);
 
-      expect(screen.getByText('Hotel Alpha')).toBeInTheDocument();
-      expect(screen.getByText('Hotel Beta')).toBeInTheDocument();
-      expect(screen.getByText('Hotel Gamma')).toBeInTheDocument();
+      // Account owner appears in both visible text and screen reader text
+      expect(screen.getAllByText(/Hotel Alpha/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Hotel Beta/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Hotel Gamma/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('does not display healthy customers', () => {
@@ -107,11 +116,12 @@ describe('AtRiskCustomersWidget', () => {
       expect(screen.getAllByText('At Risk').length).toBeGreaterThan(0);
     });
 
-    it('shows customer ID', () => {
+    it('shows account name and customer ID', () => {
       renderWithRouter(<AtRiskCustomersWidget customers={mockCustomers} />);
 
-      expect(screen.getByText(/ID: 1/)).toBeInTheDocument();
-      expect(screen.getByText(/ID: 2/)).toBeInTheDocument();
+      // New format: Account Name - ID
+      expect(screen.getByText(/Alpha Hotels Inc - 1/)).toBeInTheDocument();
+      expect(screen.getByText(/Beta Hospitality Group - 2/)).toBeInTheDocument();
     });
 
     it('shows billing country', () => {
@@ -128,6 +138,29 @@ describe('AtRiskCustomersWidget', () => {
       // Check that last login is displayed (multiple rows show it)
       expect(screen.getAllByText(/Last login:/).length).toBeGreaterThan(0);
     });
+
+    it('shows "Never logged in" when latestLogin is null', () => {
+      const customerNeverLoggedIn: CustomerSummaryDTO[] = [
+        {
+          id: '5',
+          accountOwner: 'Hotel Epsilon',
+          accountName: 'Epsilon Hotels',
+          status: 'Active Customer',
+          accountType: 'Starter',
+          healthScore: 30,
+          healthClassification: 'at-risk',
+          mrr: 400,
+          channelCount: 1,
+          latestLogin: null,
+          lastCsContactDate: null,
+          billingCountry: 'Spain',
+        },
+      ];
+
+      renderWithRouter(<AtRiskCustomersWidget customers={customerNeverLoggedIn} />);
+
+      expect(screen.getByText(/Never logged in/)).toBeInTheDocument();
+    });
   });
 
   describe('empty state', () => {
@@ -136,6 +169,7 @@ describe('AtRiskCustomersWidget', () => {
         {
           id: '1',
           accountOwner: 'Hotel Healthy',
+          accountName: 'Healthy Hotels Inc',
           status: 'Active Customer',
           accountType: 'Pro',
           healthScore: 85,
@@ -143,6 +177,7 @@ describe('AtRiskCustomersWidget', () => {
           mrr: 1000,
           channelCount: 3,
           latestLogin: new Date().toISOString(),
+          lastCsContactDate: new Date().toISOString(),
           billingCountry: 'USA',
         },
       ];
@@ -186,10 +221,10 @@ describe('AtRiskCustomersWidget', () => {
         <AtRiskCustomersWidget customers={mockCustomers} maxDisplay={2} />
       );
 
-      // Should show only 2 at-risk customers
-      expect(screen.getByText('Hotel Alpha')).toBeInTheDocument();
-      expect(screen.getByText('Hotel Beta')).toBeInTheDocument();
-      expect(screen.queryByText('Hotel Gamma')).not.toBeInTheDocument();
+      // Should show only 2 at-risk customers (account owner appears in visible text and screen reader text)
+      expect(screen.getAllByText(/Hotel Alpha/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Hotel Beta/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.queryByText(/Hotel Gamma/)).not.toBeInTheDocument();
     });
 
     it('shows "view all" link when more customers than maxDisplay', () => {

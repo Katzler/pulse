@@ -173,8 +173,8 @@ function DashboardEmptyState() {
     <div className="space-y-6" data-testid="dashboard-empty">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Customer success metrics overview</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-400">Customer success metrics overview</p>
       </div>
 
       {/* Empty state card */}
@@ -201,11 +201,11 @@ function DashboardHeader({ lastUpdated }: { lastUpdated: Date | null }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Customer success metrics overview</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-400">Customer success metrics overview</p>
       </div>
       {lastUpdated && (
-        <p className="text-sm text-gray-500" data-testid="last-updated">
+        <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="last-updated">
           Last updated: {formatLastUpdated(lastUpdated)}
         </p>
       )}
@@ -326,7 +326,7 @@ function DashboardContent() {
         <Card data-testid="portfolio-health-section">
           <h2
             id="portfolio-health-heading"
-            className="mb-4 text-lg font-semibold text-gray-900 flex items-center gap-2"
+            className="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
           >
             Portfolio Health Overview
             <HealthScoreFormulaTooltip variant="full" position="right" />
@@ -348,7 +348,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Health Distribution Chart */}
           <Card data-testid="health-distribution-section">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               Health Score Distribution
               <HealthScoreFormulaTooltip variant="classifications" position="right" />
             </h3>
@@ -363,7 +363,7 @@ function DashboardContent() {
 
           {/* MRR by Country Chart */}
           <Card data-testid="mrr-by-country-section">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               MRR by Country
             </h3>
             <ChartErrorBoundary>
@@ -377,7 +377,7 @@ function DashboardContent() {
 
           {/* Channel Adoption Chart */}
           <Card data-testid="channel-adoption-section">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               Channel Adoption
             </h3>
             <ChartErrorBoundary>
@@ -391,7 +391,7 @@ function DashboardContent() {
 
           {/* At-Risk Customers Widget */}
           <Card data-testid="at-risk-customers-section">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               At-Risk Customers
             </h3>
             <AtRiskCustomersWidget
