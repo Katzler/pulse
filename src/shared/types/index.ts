@@ -7,6 +7,8 @@ export {
   CustomerStatus,
   PropertyType,
   type RawCustomerRecord,
+  type RawSentimentRecord,
+  SENTIMENT_CSV_HEADERS,
 } from './csv.types';
 
 // Branded types for type safety

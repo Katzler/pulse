@@ -2,7 +2,10 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { compositionRoot, type UseCases } from '@application/composition';
 import { HealthScoreCalculator } from '@domain/services';
-import { InMemoryCustomerRepository } from '@infrastructure/repositories';
+import {
+  InMemoryCustomerRepository,
+  InMemorySentimentRepository,
+} from '@infrastructure/repositories';
 
 /**
  * Application context value
@@ -10,6 +13,7 @@ import { InMemoryCustomerRepository } from '@infrastructure/repositories';
 interface AppContextValue {
   useCases: UseCases;
   repository: InMemoryCustomerRepository;
+  sentimentRepository: InMemorySentimentRepository;
   healthScoreCalculator: HealthScoreCalculator;
 }
 
@@ -23,6 +27,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const contextValue = useMemo(() => {
     // Create shared instances
     const repository = new InMemoryCustomerRepository();
+    const sentimentRepository = new InMemorySentimentRepository();
     const healthScoreCalculator = new HealthScoreCalculator();
 
     // Set up health calculator on repository for statistics
@@ -34,6 +39,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         customerReadRepository: repository,
         customerWriteRepository: repository,
         customerStatisticsRepository: repository,
+        sentimentReadRepository: sentimentRepository,
+        sentimentWriteRepository: sentimentRepository,
         healthScoreCalculator,
       });
     }
@@ -41,6 +48,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return {
       useCases: compositionRoot.getUseCases(),
       repository,
+      sentimentRepository,
       healthScoreCalculator,
     };
   }, []);
@@ -65,4 +73,11 @@ export function useApp(): AppContextValue {
  */
 export function useUseCases(): UseCases {
   return useApp().useCases;
+}
+
+/**
+ * Hook to access the sentiment repository directly.
+ */
+export function useSentimentRepository(): InMemorySentimentRepository {
+  return useApp().sentimentRepository;
 }

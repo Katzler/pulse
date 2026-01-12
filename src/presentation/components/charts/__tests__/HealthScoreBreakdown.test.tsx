@@ -12,6 +12,7 @@ const mockBreakdown: HealthScoreBreakdownDTO = {
   channelAdoptionScore: 15,
   accountTypeScore: 5,
   mrrScore: 5,
+  sentimentAdjustment: 0,
 };
 
 describe('HealthScoreBreakdown', () => {
@@ -159,6 +160,7 @@ describe('HealthScoreBreakdown', () => {
         channelAdoptionScore: 0,
         accountTypeScore: 0,
         mrrScore: 0,
+        sentimentAdjustment: 0,
       };
 
       render(<HealthScoreBreakdown breakdown={zeroBreakdown} />);
@@ -175,6 +177,7 @@ describe('HealthScoreBreakdown', () => {
         channelAdoptionScore: 20,
         accountTypeScore: 15,
         mrrScore: 10,
+        sentimentAdjustment: 0,
       };
 
       render(<HealthScoreBreakdown breakdown={maxBreakdown} />);

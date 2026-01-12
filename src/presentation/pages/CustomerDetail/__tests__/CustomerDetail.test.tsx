@@ -47,6 +47,7 @@ const mockHealthBreakdown: HealthScoreBreakdownDTO = {
   channelAdoptionScore: 15,
   accountTypeScore: 10,
   mrrScore: 0,
+  sentimentAdjustment: 0,
   totalScore: 75,
 };
 
@@ -77,6 +78,16 @@ vi.mock('@application/composition', () => ({
       },
     }),
   },
+}));
+
+// Mock the useSentimentRepository hook
+vi.mock('@presentation/context', () => ({
+  useSentimentRepository: vi.fn(() => ({
+    getSummaryByCustomerId: vi.fn(() => ({
+      success: false,
+      error: { type: 'SENTIMENT_NOT_FOUND', message: 'Not found', details: { customerId: '' } },
+    })),
+  })),
 }));
 
 const renderWithRouter = (ui: React.ReactElement) => {

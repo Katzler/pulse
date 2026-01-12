@@ -12,6 +12,7 @@ describe('HealthScoreMapper', () => {
         channelAdoption: 20,
         accountType: 15,
         mrrValue: 10,
+        sentimentAdjustment: 0,
         total: 100,
       };
 
@@ -23,6 +24,7 @@ describe('HealthScoreMapper', () => {
       expect(dto.channelAdoptionScore).toBe(20);
       expect(dto.accountTypeScore).toBe(15);
       expect(dto.mrrScore).toBe(10);
+      expect(dto.sentimentAdjustment).toBe(0);
     });
 
     it('handles partial scores', () => {
@@ -32,6 +34,7 @@ describe('HealthScoreMapper', () => {
         channelAdoption: 8,
         accountType: 5,
         mrrValue: 2,
+        sentimentAdjustment: 0,
         total: 30,
       };
 
@@ -43,6 +46,7 @@ describe('HealthScoreMapper', () => {
       expect(dto.channelAdoptionScore).toBe(8);
       expect(dto.accountTypeScore).toBe(5);
       expect(dto.mrrScore).toBe(2);
+      expect(dto.sentimentAdjustment).toBe(0);
     });
 
     it('handles zero scores', () => {
@@ -52,6 +56,7 @@ describe('HealthScoreMapper', () => {
         channelAdoption: 0,
         accountType: 5,
         mrrValue: 0,
+        sentimentAdjustment: 0,
         total: 5,
       };
 
@@ -63,6 +68,24 @@ describe('HealthScoreMapper', () => {
       expect(dto.channelAdoptionScore).toBe(0);
       expect(dto.accountTypeScore).toBe(5);
       expect(dto.mrrScore).toBe(0);
+      expect(dto.sentimentAdjustment).toBe(0);
+    });
+
+    it('handles sentiment adjustment', () => {
+      const breakdown: FactorBreakdown = {
+        activityStatus: 30,
+        loginRecency: 25,
+        channelAdoption: 20,
+        accountType: 15,
+        mrrValue: 10,
+        sentimentAdjustment: -10,
+        total: 90,
+      };
+
+      const dto = HealthScoreMapper.toBreakdownDTO(breakdown);
+
+      expect(dto.totalScore).toBe(90);
+      expect(dto.sentimentAdjustment).toBe(-10);
     });
   });
 });

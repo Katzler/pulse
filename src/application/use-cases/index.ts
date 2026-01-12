@@ -20,6 +20,12 @@ export {
   type RawCsvRecord,
 } from './ImportCustomersUseCase';
 export {
+  type ImportSentimentInput,
+  type ImportSentimentOutput,
+  ImportSentimentDataUseCase,
+  type SentimentImportRowError,
+} from './ImportSentimentDataUseCase';
+export {
   type AppliedFilter,
   type SearchCustomersInput,
   type SearchCustomersOutput,

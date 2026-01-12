@@ -6,4 +6,5 @@ export {
   type FactorExplanation,
   type FormulaExplanation,
   HealthScoreCalculator,
+  type HealthScoreOptions,
 } from './HealthScoreCalculator';
