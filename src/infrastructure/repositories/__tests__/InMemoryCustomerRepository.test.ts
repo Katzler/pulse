@@ -42,28 +42,28 @@ describe('InMemoryCustomerRepository', () => {
 
   describe('CustomerReadRepository', () => {
     describe('getAll', () => {
-      it('returns empty array when no customers', () => {
-        expect(repository.getAll()).toEqual([]);
+      it('returns empty array when no customers', async () => {
+        expect(await repository.getAll()).toEqual([]);
       });
 
-      it('returns all customers', () => {
+      it('returns all customers', async () => {
         const customer1 = createTestCustomer({ id: 'CUST-001' });
         const customer2 = createTestCustomer({ id: 'CUST-002' });
-        repository.add(customer1);
-        repository.add(customer2);
+        await repository.add(customer1);
+        await repository.add(customer2);
 
-        const result = repository.getAll();
+        const result = await repository.getAll();
 
         expect(result).toHaveLength(2);
       });
     });
 
     describe('getById', () => {
-      it('returns customer when found', () => {
+      it('returns customer when found', async () => {
         const customer = createTestCustomer({ id: 'CUST-001' });
-        repository.add(customer);
+        await repository.add(customer);
 
-        const result = repository.getById(CustomerId.create('CUST-001'));
+        const result = await repository.getById(CustomerId.create('CUST-001'));
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -71,8 +71,8 @@ describe('InMemoryCustomerRepository', () => {
         }
       });
 
-      it('returns error when not found', () => {
-        const result = repository.getById(CustomerId.create('NONEXISTENT'));
+      it('returns error when not found', async () => {
+        const result = await repository.getById(CustomerId.create('NONEXISTENT'));
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -82,91 +82,91 @@ describe('InMemoryCustomerRepository', () => {
     });
 
     describe('search', () => {
-      beforeEach(() => {
-        repository.add(createTestCustomer({ id: 'CUST-001', accountOwner: 'John Smith', billingCountry: 'Sweden' }));
-        repository.add(createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane Doe', billingCountry: 'Norway' }));
-        repository.add(
+      beforeEach(async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001', accountOwner: 'John Smith', billingCountry: 'Sweden' }));
+        await repository.add(createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane Doe', billingCountry: 'Norway' }));
+        await repository.add(
           createTestCustomer({ id: 'CUST-003', accountOwner: 'Bob Johnson', billingCountry: 'Sweden', status: CustomerStatus.Inactive })
         );
       });
 
-      it('returns all customers when no criteria', () => {
-        const result = repository.search({});
+      it('returns all customers when no criteria', async () => {
+        const result = await repository.search({});
         expect(result).toHaveLength(3);
       });
 
-      it('filters by text query on ID', () => {
-        const result = repository.search({ query: 'CUST-001' });
+      it('filters by text query on ID', async () => {
+        const result = await repository.search({ query: 'CUST-001' });
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe('CUST-001');
       });
 
-      it('filters by text query on account owner', () => {
-        const result = repository.search({ query: 'john' });
+      it('filters by text query on account owner', async () => {
+        const result = await repository.search({ query: 'john' });
         expect(result).toHaveLength(2); // John Smith and Bob Johnson
       });
 
-      it('filters by country', () => {
-        const result = repository.search({ country: 'Sweden' });
+      it('filters by country', async () => {
+        const result = await repository.search({ country: 'Sweden' });
         expect(result).toHaveLength(2);
       });
 
-      it('filters by status', () => {
-        const result = repository.search({ status: CustomerStatus.Active });
+      it('filters by status', async () => {
+        const result = await repository.search({ status: CustomerStatus.Active });
         expect(result).toHaveLength(2);
       });
 
-      it('applies multiple filters', () => {
-        const result = repository.search({ country: 'Sweden', status: CustomerStatus.Active });
+      it('applies multiple filters', async () => {
+        const result = await repository.search({ country: 'Sweden', status: CustomerStatus.Active });
         expect(result).toHaveLength(1);
         expect(result[0].accountOwner).toBe('John Smith');
       });
 
-      it('applies pagination with limit', () => {
-        const result = repository.search({ limit: 2 });
+      it('applies pagination with limit', async () => {
+        const result = await repository.search({ limit: 2 });
         expect(result).toHaveLength(2);
       });
 
-      it('applies pagination with offset', () => {
-        const result = repository.search({ offset: 1 });
+      it('applies pagination with offset', async () => {
+        const result = await repository.search({ offset: 1 });
         expect(result).toHaveLength(2);
       });
 
-      it('applies pagination with limit and offset', () => {
-        const result = repository.search({ offset: 1, limit: 1 });
+      it('applies pagination with limit and offset', async () => {
+        const result = await repository.search({ offset: 1, limit: 1 });
         expect(result).toHaveLength(1);
       });
     });
 
     describe('count', () => {
-      it('returns 0 when empty', () => {
-        expect(repository.count()).toBe(0);
+      it('returns 0 when empty', async () => {
+        expect(await repository.count()).toBe(0);
       });
 
-      it('returns correct count', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001' }));
-        repository.add(createTestCustomer({ id: 'CUST-002' }));
-        expect(repository.count()).toBe(2);
+      it('returns correct count', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001' }));
+        await repository.add(createTestCustomer({ id: 'CUST-002' }));
+        expect(await repository.count()).toBe(2);
       });
     });
   });
 
   describe('CustomerWriteRepository', () => {
     describe('add', () => {
-      it('adds a customer successfully', () => {
+      it('adds a customer successfully', async () => {
         const customer = createTestCustomer({ id: 'CUST-001' });
 
-        const result = repository.add(customer);
+        const result = await repository.add(customer);
 
         expect(result.success).toBe(true);
-        expect(repository.count()).toBe(1);
+        expect(await repository.count()).toBe(1);
       });
 
-      it('returns error for duplicate customer', () => {
+      it('returns error for duplicate customer', async () => {
         const customer = createTestCustomer({ id: 'CUST-001' });
-        repository.add(customer);
+        await repository.add(customer);
 
-        const result = repository.add(customer);
+        const result = await repository.add(customer);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -176,51 +176,51 @@ describe('InMemoryCustomerRepository', () => {
     });
 
     describe('addMany', () => {
-      it('adds multiple customers', () => {
+      it('adds multiple customers', async () => {
         const customers = [createTestCustomer({ id: 'CUST-001' }), createTestCustomer({ id: 'CUST-002' }), createTestCustomer({ id: 'CUST-003' })];
 
-        const result = repository.addMany(customers);
+        const result = await repository.addMany(customers);
 
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.value.successCount).toBe(3);
           expect(result.value.skippedCount).toBe(0);
         }
-        expect(repository.count()).toBe(3);
+        expect(await repository.count()).toBe(3);
       });
 
-      it('skips duplicates', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001' }));
+      it('skips duplicates', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001' }));
 
         const customers = [createTestCustomer({ id: 'CUST-001' }), createTestCustomer({ id: 'CUST-002' })];
 
-        const result = repository.addMany(customers);
+        const result = await repository.addMany(customers);
 
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.value.successCount).toBe(1);
           expect(result.value.skippedCount).toBe(1);
         }
-        expect(repository.count()).toBe(2);
+        expect(await repository.count()).toBe(2);
       });
     });
 
     describe('clear', () => {
-      it('removes all customers', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001' }));
-        repository.add(createTestCustomer({ id: 'CUST-002' }));
+      it('removes all customers', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001' }));
+        await repository.add(createTestCustomer({ id: 'CUST-002' }));
 
-        repository.clear();
+        await repository.clear();
 
-        expect(repository.count()).toBe(0);
+        expect(await repository.count()).toBe(0);
       });
     });
   });
 
   describe('CustomerStatisticsRepository', () => {
     describe('getStatistics', () => {
-      it('returns zeros when empty', () => {
-        const stats = repository.getStatistics();
+      it('returns zeros when empty', async () => {
+        const stats = await repository.getStatistics();
 
         expect(stats.totalCount).toBe(0);
         expect(stats.activeCount).toBe(0);
@@ -228,12 +228,12 @@ describe('InMemoryCustomerRepository', () => {
         expect(stats.totalMrr).toBe(0);
       });
 
-      it('calculates correct statistics', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001', status: CustomerStatus.Active, mrr: 1000 }));
-        repository.add(createTestCustomer({ id: 'CUST-002', status: CustomerStatus.Active, mrr: 2000 }));
-        repository.add(createTestCustomer({ id: 'CUST-003', status: CustomerStatus.Inactive, mrr: 500 }));
+      it('calculates correct statistics', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001', status: CustomerStatus.Active, mrr: 1000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-002', status: CustomerStatus.Active, mrr: 2000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-003', status: CustomerStatus.Inactive, mrr: 500 }));
 
-        const stats = repository.getStatistics();
+        const stats = await repository.getStatistics();
 
         expect(stats.totalCount).toBe(3);
         expect(stats.activeCount).toBe(2);
@@ -241,9 +241,9 @@ describe('InMemoryCustomerRepository', () => {
         expect(stats.totalMrr).toBe(3500);
       });
 
-      it('calculates health scores when calculator is set', () => {
+      it('calculates health scores when calculator is set', async () => {
         repository.setHealthScoreCalculator(new HealthScoreCalculator());
-        repository.add(
+        await repository.add(
           createTestCustomer({
             id: 'CUST-001',
             status: CustomerStatus.Active,
@@ -253,7 +253,7 @@ describe('InMemoryCustomerRepository', () => {
             mrr: 5000,
           })
         );
-        repository.add(
+        await repository.add(
           createTestCustomer({
             id: 'CUST-002',
             status: CustomerStatus.Inactive,
@@ -264,7 +264,7 @@ describe('InMemoryCustomerRepository', () => {
           })
         );
 
-        const stats = repository.getStatistics();
+        const stats = await repository.getStatistics();
 
         expect(stats.averageHealthScore).toBeGreaterThan(0);
         expect(stats.atRiskCount).toBeGreaterThanOrEqual(1);
@@ -272,21 +272,21 @@ describe('InMemoryCustomerRepository', () => {
     });
 
     describe('getHealthDistribution', () => {
-      it('returns zeros when no calculator set', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001' }));
+      it('returns zeros when no calculator set', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001' }));
 
-        const dist = repository.getHealthDistribution();
+        const dist = await repository.getHealthDistribution();
 
         expect(dist.healthy).toBe(0);
         expect(dist.atRisk).toBe(0);
         expect(dist.critical).toBe(0);
       });
 
-      it('calculates distribution when calculator is set', () => {
+      it('calculates distribution when calculator is set', async () => {
         repository.setHealthScoreCalculator(new HealthScoreCalculator());
 
         // Healthy customer
-        repository.add(
+        await repository.add(
           createTestCustomer({
             id: 'HEALTHY-001',
             status: CustomerStatus.Active,
@@ -298,7 +298,7 @@ describe('InMemoryCustomerRepository', () => {
         );
 
         // At-risk customer
-        repository.add(
+        await repository.add(
           createTestCustomer({
             id: 'ATRISK-001',
             status: CustomerStatus.Inactive,
@@ -309,23 +309,23 @@ describe('InMemoryCustomerRepository', () => {
           })
         );
 
-        const dist = repository.getHealthDistribution();
+        const dist = await repository.getHealthDistribution();
 
         expect(dist.healthy + dist.atRisk + dist.critical).toBe(2);
       });
     });
 
     describe('getMrrByCountry', () => {
-      it('returns empty array when no customers', () => {
-        expect(repository.getMrrByCountry()).toEqual([]);
+      it('returns empty array when no customers', async () => {
+        expect(await repository.getMrrByCountry()).toEqual([]);
       });
 
-      it('aggregates MRR by country', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden', mrr: 1000 }));
-        repository.add(createTestCustomer({ id: 'CUST-002', billingCountry: 'Sweden', mrr: 2000 }));
-        repository.add(createTestCustomer({ id: 'CUST-003', billingCountry: 'Norway', mrr: 500 }));
+      it('aggregates MRR by country', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden', mrr: 1000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-002', billingCountry: 'Sweden', mrr: 2000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-003', billingCountry: 'Norway', mrr: 500 }));
 
-        const mrrByCountry = repository.getMrrByCountry();
+        const mrrByCountry = await repository.getMrrByCountry();
 
         expect(mrrByCountry).toHaveLength(2);
 
@@ -338,12 +338,12 @@ describe('InMemoryCustomerRepository', () => {
         expect(norway?.customerCount).toBe(1);
       });
 
-      it('sorts by MRR descending', () => {
-        repository.add(createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden', mrr: 1000 }));
-        repository.add(createTestCustomer({ id: 'CUST-002', billingCountry: 'Norway', mrr: 5000 }));
-        repository.add(createTestCustomer({ id: 'CUST-003', billingCountry: 'Denmark', mrr: 2000 }));
+      it('sorts by MRR descending', async () => {
+        await repository.add(createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden', mrr: 1000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-002', billingCountry: 'Norway', mrr: 5000 }));
+        await repository.add(createTestCustomer({ id: 'CUST-003', billingCountry: 'Denmark', mrr: 2000 }));
 
-        const mrrByCountry = repository.getMrrByCountry();
+        const mrrByCountry = await repository.getMrrByCountry();
 
         expect(mrrByCountry[0].country).toBe('Norway');
         expect(mrrByCountry[1].country).toBe('Denmark');

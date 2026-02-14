@@ -113,7 +113,7 @@ class MockCustomerStatisticsRepository implements CustomerStatisticsRepository {
   }
 }
 
-describe('GetDashboardOverviewUseCase', () => {
+describe('GetDashboardOverviewUseCase', async () => {
   let useCase: GetDashboardOverviewUseCase;
   let mockReadRepository: MockCustomerReadRepository;
   let mockStatsRepository: MockCustomerStatisticsRepository;
@@ -130,8 +130,8 @@ describe('GetDashboardOverviewUseCase', () => {
     );
   });
 
-  describe('execute', () => {
-    it('returns metrics from statistics repository', () => {
+  describe('execute', async () => {
+    it('returns metrics from statistics repository', async () => {
       mockStatsRepository.setStatistics({
         totalCount: 100,
         activeCount: 75,
@@ -147,7 +147,7 @@ describe('GetDashboardOverviewUseCase', () => {
         critical: 10,
       });
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -158,14 +158,14 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('returns health distribution', () => {
+    it('returns health distribution', async () => {
       mockStatsRepository.setHealthDistribution({
         healthy: 50,
         atRisk: 30,
         critical: 20,
       });
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -175,7 +175,7 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('calculates status distribution from customers', () => {
+    it('calculates status distribution from customers', async () => {
       const customers = [
         createTestCustomer({ id: 'C1', status: CustomerStatus.Active }),
         createTestCustomer({ id: 'C2', status: CustomerStatus.Active }),
@@ -183,7 +183,7 @@ describe('GetDashboardOverviewUseCase', () => {
       ];
       mockReadRepository.setCustomers(customers);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -199,7 +199,7 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('identifies at-risk customers', () => {
+    it('identifies at-risk customers', async () => {
       // Create customers with varying health factors
       const customers = [
         // High health (active, recent login, multiple channels, pro)
@@ -223,7 +223,7 @@ describe('GetDashboardOverviewUseCase', () => {
       ];
       mockReadRepository.setCustomers(customers);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -236,7 +236,7 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('sorts at-risk customers by health score ascending', () => {
+    it('sorts at-risk customers by health score ascending', async () => {
       const customers = [
         createTestCustomer({
           id: 'CUST-001',
@@ -251,7 +251,7 @@ describe('GetDashboardOverviewUseCase', () => {
       ];
       mockReadRepository.setCustomers(customers);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success && result.value.atRiskCustomers.length >= 2) {
@@ -262,7 +262,7 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('limits at-risk customers to top 10', () => {
+    it('limits at-risk customers to top 10', async () => {
       // Create 15 at-risk customers
       const customers = Array.from({ length: 15 }, (_, i) =>
         createTestCustomer({
@@ -273,7 +273,7 @@ describe('GetDashboardOverviewUseCase', () => {
       );
       mockReadRepository.setCustomers(customers);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -281,10 +281,10 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('returns empty status distribution for no customers', () => {
+    it('returns empty status distribution for no customers', async () => {
       mockReadRepository.setCustomers([]);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -292,7 +292,7 @@ describe('GetDashboardOverviewUseCase', () => {
       }
     });
 
-    it('includes MRR in at-risk customer data', () => {
+    it('includes MRR in at-risk customer data', async () => {
       const customers = [
         createTestCustomer({
           id: 'ATRISK-001',
@@ -302,7 +302,7 @@ describe('GetDashboardOverviewUseCase', () => {
       ];
       mockReadRepository.setCustomers(customers);
 
-      const result = useCase.execute();
+      const result = await useCase.execute();
 
       expect(result.success).toBe(true);
       if (result.success && result.value.atRiskCustomers.length > 0) {

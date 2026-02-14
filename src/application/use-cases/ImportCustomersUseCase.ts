@@ -70,7 +70,7 @@ export class ImportCustomersUseCase {
   /**
    * Execute the import use case
    */
-  execute(input: ImportCustomersInput): Result<ImportCustomersOutput, string> {
+  async execute(input: ImportCustomersInput): Promise<Result<ImportCustomersOutput, string>> {
     const { records } = input;
     const errors: ImportRowError[] = [];
     const customers: Customer[] = [];
@@ -110,7 +110,7 @@ export class ImportCustomersUseCase {
     }
 
     // Store in repository
-    const storeResult = this.customerRepository.addMany(customers);
+    const storeResult = await this.customerRepository.addMany(customers);
 
     let importedCount = customers.length;
     if (!storeResult.success) {

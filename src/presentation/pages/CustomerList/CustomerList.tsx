@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import type { SearchCustomersInput } from '@application/use-cases';
+import type { SearchCustomersInput, SearchCustomersOutput } from '@application/use-cases';
 import { Badge, Button } from '@presentation/components/common';
 import { SearchInput } from '@presentation/components/search';
 import { type CustomerSortKey, CustomerTable, type SortOrder } from '@presentation/components/table';
@@ -130,44 +130,48 @@ export function CustomerList() {
     }
   };
 
-  // Query customers using the SearchCustomersUseCase (with full domain filtering including channels)
-  const queryResult = useMemo(() => {
-    // Build input object, only including defined properties
-    const input: SearchCustomersInput = {
-      sortBy: mapSortKey(sortKey),
-      sortOrder: sortOrder,
-      page: currentPage,
-      pageSize: PAGE_SIZE,
-    };
+  // Query results from async SearchCustomersUseCase
+  const [queryResult, setQueryResult] = useState<SearchCustomersOutput>({
+    customers: [],
+    totalCount: 0,
+    page: 1,
+    pageSize: PAGE_SIZE,
+    totalPages: 0,
+    appliedFilters: [],
+  });
 
-    // Add optional filters only if they have values
-    const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery) {
-      input.query = trimmedQuery;
-    }
-    if (urlFilters.health) {
-      input.healthStatus = HEALTH_URL_TO_FILTER[urlFilters.health];
-    }
-    if (urlFilters.country) {
-      input.country = urlFilters.country;
-    }
-    if (urlFilters.channel) {
-      input.channels = [urlFilters.channel];
-    }
+  // Fetch customers using the SearchCustomersUseCase (async)
+  useEffect(() => {
+    const fetchResults = async () => {
+      // Build input object, only including defined properties
+      const input: SearchCustomersInput = {
+        sortBy: mapSortKey(sortKey),
+        sortOrder: sortOrder,
+        page: currentPage,
+        pageSize: PAGE_SIZE,
+      };
 
-    const result = searchCustomers.execute(input);
-    if (result.success) {
-      return result.value;
-    }
-    // Return empty result on error
-    return {
-      customers: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: PAGE_SIZE,
-      totalPages: 0,
-      appliedFilters: [],
+      // Add optional filters only if they have values
+      const trimmedQuery = searchQuery.trim();
+      if (trimmedQuery) {
+        input.query = trimmedQuery;
+      }
+      if (urlFilters.health) {
+        input.healthStatus = HEALTH_URL_TO_FILTER[urlFilters.health];
+      }
+      if (urlFilters.country) {
+        input.country = urlFilters.country;
+      }
+      if (urlFilters.channel) {
+        input.channels = [urlFilters.channel];
+      }
+
+      const result = await searchCustomers.execute(input);
+      if (result.success) {
+        setQueryResult(result.value);
+      }
     };
+    fetchResults();
   }, [searchQuery, urlFilters, sortKey, sortOrder, currentPage, searchCustomers]);
 
   // Extract results from query

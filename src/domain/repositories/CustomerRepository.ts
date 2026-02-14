@@ -102,22 +102,22 @@ export interface CustomerReadRepository {
   /**
    * Retrieve all customers
    */
-  getAll(): Customer[];
+  getAll(): Promise<Customer[]>;
 
   /**
    * Find a customer by their unique ID
    */
-  getById(id: CustomerId): Result<Customer, CustomerNotFoundError>;
+  getById(id: CustomerId): Promise<Result<Customer, CustomerNotFoundError>>;
 
   /**
    * Search customers using multiple criteria
    */
-  search(criteria: SearchCriteria): Customer[];
+  search(criteria: SearchCriteria): Promise<Customer[]>;
 
   /**
    * Get total customer count
    */
-  count(): number;
+  count(): Promise<number>;
 }
 
 /**
@@ -130,17 +130,17 @@ export interface CustomerWriteRepository {
   /**
    * Add a single customer
    */
-  add(customer: Customer): Result<void, DuplicateCustomerError>;
+  add(customer: Customer): Promise<Result<void, DuplicateCustomerError>>;
 
   /**
    * Bulk add multiple customers
    */
-  addMany(customers: Customer[]): Result<ImportSummary, ImportError>;
+  addMany(customers: Customer[]): Promise<Result<ImportSummary, ImportError>>;
 
   /**
    * Remove all customers from the repository
    */
-  clear(): void;
+  clear(): Promise<void>;
 }
 
 /**
@@ -153,17 +153,17 @@ export interface CustomerStatisticsRepository {
   /**
    * Get aggregate statistics for all customers
    */
-  getStatistics(): CustomerStatistics;
+  getStatistics(): Promise<CustomerStatistics>;
 
   /**
    * Get health score distribution (healthy/at-risk/critical counts)
    */
-  getHealthDistribution(): HealthDistribution;
+  getHealthDistribution(): Promise<HealthDistribution>;
 
   /**
    * Get MRR totals grouped by country
    */
-  getMrrByCountry(): MrrByCountry[];
+  getMrrByCountry(): Promise<MrrByCountry[]>;
 }
 
 /**

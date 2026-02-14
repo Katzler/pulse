@@ -69,7 +69,7 @@ class MockCustomerReadRepository implements CustomerReadRepository {
   }
 }
 
-describe('GetCustomerDetailsUseCase', () => {
+describe('GetCustomerDetailsUseCase', async () => {
   let useCase: GetCustomerDetailsUseCase;
   let mockRepository: MockCustomerReadRepository;
   let healthScoreCalculator: HealthScoreCalculator;
@@ -80,12 +80,12 @@ describe('GetCustomerDetailsUseCase', () => {
     useCase = new GetCustomerDetailsUseCase(mockRepository, healthScoreCalculator);
   });
 
-  describe('execute', () => {
-    it('returns customer details when found', () => {
+  describe('execute', async () => {
+    it('returns customer details when found', async () => {
       const customer = createTestCustomer({ id: 'CUST-001' });
       mockRepository.setCustomer(customer);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -94,7 +94,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('returns all customer fields', () => {
+    it('returns all customer fields', async () => {
       const customer = createTestCustomer({
         id: 'CUST-001',
         accountOwner: 'Test User',
@@ -103,7 +103,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(customer);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -117,11 +117,11 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('includes health score', () => {
+    it('includes health score', async () => {
       const customer = createTestCustomer({ id: 'CUST-001' });
       mockRepository.setCustomer(customer);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -130,11 +130,11 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('includes health breakdown with all factors', () => {
+    it('includes health breakdown with all factors', async () => {
       const customer = createTestCustomer({ id: 'CUST-001' });
       mockRepository.setCustomer(customer);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -148,8 +148,8 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('returns error when customer not found', () => {
-      const result = useCase.execute({ customerId: 'NONEXISTENT' });
+    it('returns error when customer not found', async () => {
+      const result = await useCase.execute({ customerId: 'NONEXISTENT' });
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -158,7 +158,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('calculates correct health classification', () => {
+    it('calculates correct health classification', async () => {
       // Create a healthy customer (active, recent login, channels)
       const healthyCustomer = createTestCustomer({
         id: 'HEALTHY-001',
@@ -170,7 +170,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(healthyCustomer);
 
-      const result = useCase.execute({ customerId: 'HEALTHY-001' });
+      const result = await useCase.execute({ customerId: 'HEALTHY-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -178,7 +178,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('calculates at-risk classification for inactive customers', () => {
+    it('calculates at-risk classification for inactive customers', async () => {
       // Create an at-risk customer (inactive)
       const atRiskCustomer = createTestCustomer({
         id: 'ATRISK-001',
@@ -190,7 +190,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(atRiskCustomer);
 
-      const result = useCase.execute({ customerId: 'ATRISK-001' });
+      const result = await useCase.execute({ customerId: 'ATRISK-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -199,7 +199,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('includes comparative metrics', () => {
+    it('includes comparative metrics', async () => {
       // Add multiple customers for comparison
       const customer1 = createTestCustomer({
         id: 'CUST-001',
@@ -214,7 +214,7 @@ describe('GetCustomerDetailsUseCase', () => {
       mockRepository.setCustomer(customer1);
       mockRepository.setCustomer(customer2);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -228,7 +228,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('includes timeline data', () => {
+    it('includes timeline data', async () => {
       const customer = createTestCustomer({
         id: 'CUST-001',
         createdDate: new Date('2023-01-01T00:00:00Z'),
@@ -236,7 +236,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(customer);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -250,7 +250,7 @@ describe('GetCustomerDetailsUseCase', () => {
       }
     });
 
-    it('categorizes account age correctly', () => {
+    it('categorizes account age correctly', async () => {
       // New account (less than 30 days old)
       const newCustomer = createTestCustomer({
         id: 'NEW-001',
@@ -259,7 +259,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(newCustomer);
 
-      const newResult = useCase.execute({ customerId: 'NEW-001' });
+      const newResult = await useCase.execute({ customerId: 'NEW-001' });
       expect(newResult.success).toBe(true);
       if (newResult.success) {
         expect(newResult.value.timeline.accountAgeCategory).toBe('new');
@@ -273,7 +273,7 @@ describe('GetCustomerDetailsUseCase', () => {
       });
       mockRepository.setCustomer(veteranCustomer);
 
-      const vetResult = useCase.execute({ customerId: 'VET-001' });
+      const vetResult = await useCase.execute({ customerId: 'VET-001' });
       expect(vetResult.success).toBe(true);
       if (vetResult.success) {
         expect(vetResult.value.timeline.accountAgeCategory).toBe('veteran');

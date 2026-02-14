@@ -658,14 +658,19 @@ export function CustomerDetail(): JSX.Element {
     setIsLoading(true);
     setError(null);
 
-    const result = useCases.getCustomerDetails.execute({ customerId });
+    try {
+      const result = await useCases.getCustomerDetails.execute({ customerId });
 
-    if (result.success) {
-      setCustomerDetails(result.value);
-    } else {
-      setError(result.error);
+      if (result.success) {
+        setCustomerDetails(result.value);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load customer details');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [customerId, useCases]);
 
   // Fetch customer details on mount and when customerId changes

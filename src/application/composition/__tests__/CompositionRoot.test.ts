@@ -167,34 +167,34 @@ describe('CompositionRoot', () => {
   });
 
   describe('use case functionality', () => {
-    it('importCustomers use case works', () => {
+    it('importCustomers use case works', async () => {
       const context = root.initialize(dependencies);
 
-      const result = context.useCases.importCustomers.execute({ records: [] });
+      const result = await context.useCases.importCustomers.execute({ records: [] });
 
       expect(result.success).toBe(true);
     });
 
-    it('getDashboardOverview use case works', () => {
+    it('getDashboardOverview use case works', async () => {
       const context = root.initialize(dependencies);
 
-      const result = context.useCases.getDashboardOverview.execute();
+      const result = await context.useCases.getDashboardOverview.execute();
 
       expect(result.success).toBe(true);
     });
 
-    it('searchCustomers use case works', () => {
+    it('searchCustomers use case works', async () => {
       const context = root.initialize(dependencies);
 
-      const result = context.useCases.searchCustomers.execute({});
+      const result = await context.useCases.searchCustomers.execute({});
 
       expect(result.success).toBe(true);
     });
 
-    it('getCustomerDetails use case returns not found for missing customer', () => {
+    it('getCustomerDetails use case returns not found for missing customer', async () => {
       const context = root.initialize(dependencies);
 
-      const result = context.useCases.getCustomerDetails.execute({ customerId: 'MISSING' });
+      const result = await context.useCases.getCustomerDetails.execute({ customerId: 'MISSING' });
 
       expect(result.success).toBe(false);
     });

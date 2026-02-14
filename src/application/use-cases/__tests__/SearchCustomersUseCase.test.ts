@@ -89,7 +89,7 @@ class MockCustomerReadRepository implements CustomerReadRepository {
   }
 }
 
-describe('SearchCustomersUseCase', () => {
+describe('SearchCustomersUseCase', async () => {
   let useCase: SearchCustomersUseCase;
   let mockRepository: MockCustomerReadRepository;
   let healthScoreCalculator: HealthScoreCalculator;
@@ -100,15 +100,15 @@ describe('SearchCustomersUseCase', () => {
     useCase = new SearchCustomersUseCase(mockRepository, healthScoreCalculator);
   });
 
-  describe('execute', () => {
-    it('returns all customers when no filters provided', () => {
+  describe('execute', async () => {
+    it('returns all customers when no filters provided', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', accountOwner: 'John' }),
         createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane' }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({});
+      const result = await useCase.execute({});
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -119,14 +119,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by search query', () => {
+    it('filters by search query', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', accountOwner: 'John Smith' }),
         createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane Doe' }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ query: 'john' });
+      const result = await useCase.execute({ query: 'john' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -135,14 +135,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by country', () => {
+    it('filters by country', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden' }),
         createTestCustomer({ id: 'CUST-002', billingCountry: 'Norway' }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ country: 'Sweden' });
+      const result = await useCase.execute({ country: 'Sweden' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -150,14 +150,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by active status', () => {
+    it('filters by active status', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', status: CustomerStatus.Active }),
         createTestCustomer({ id: 'CUST-002', status: CustomerStatus.Inactive }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ status: 'active' });
+      const result = await useCase.execute({ status: 'active' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -165,14 +165,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by account type', () => {
+    it('filters by account type', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', accountType: AccountType.Pro }),
         createTestCustomer({ id: 'CUST-002', accountType: AccountType.Starter }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ accountType: 'Pro' });
+      const result = await useCase.execute({ accountType: 'Pro' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -180,14 +180,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('applies pagination', () => {
+    it('applies pagination', async () => {
       const customers = Array.from({ length: 25 }, (_, i) =>
         createTestCustomer({ id: `CUST-${String(i + 1).padStart(3, '0')}` })
       );
       mockRepository.setCustomers(customers);
 
       // Default page size is 20, request page 1
-      const result = useCase.execute({ page: 1, pageSize: 10 });
+      const result = await useCase.execute({ page: 1, pageSize: 10 });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -199,13 +199,13 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('returns correct page when requesting later pages', () => {
+    it('returns correct page when requesting later pages', async () => {
       const customers = Array.from({ length: 25 }, (_, i) =>
         createTestCustomer({ id: `CUST-${String(i + 1).padStart(3, '0')}` })
       );
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ page: 3, pageSize: 10 });
+      const result = await useCase.execute({ page: 3, pageSize: 10 });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -215,10 +215,10 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('returns empty array when no matches', () => {
+    it('returns empty array when no matches', async () => {
       mockRepository.setCustomers([]);
 
-      const result = useCase.execute({ query: 'nonexistent' });
+      const result = await useCase.execute({ query: 'nonexistent' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -228,11 +228,11 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('includes health score in results', () => {
+    it('includes health score in results', async () => {
       const customers = [createTestCustomer({ id: 'CUST-001' })];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({});
+      const result = await useCase.execute({});
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -241,14 +241,14 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by exact customer ID', () => {
+    it('filters by exact customer ID', async () => {
       const customers = [
         createTestCustomer({ id: 'CUST-001', accountOwner: 'John' }),
         createTestCustomer({ id: 'CUST-002', accountOwner: 'Jane' }),
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ customerId: 'CUST-001' });
+      const result = await useCase.execute({ customerId: 'CUST-001' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -257,7 +257,7 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('sorts by MRR descending', () => {
+    it('sorts by MRR descending', async () => {
       const customers = [
         createTestCustomer({ id: 'LOW-MRR', mrr: 100 }),
         createTestCustomer({ id: 'HIGH-MRR', mrr: 5000 }),
@@ -265,7 +265,7 @@ describe('SearchCustomersUseCase', () => {
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ sortBy: 'mrr', sortOrder: 'desc' });
+      const result = await useCase.execute({ sortBy: 'mrr', sortOrder: 'desc' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -275,7 +275,7 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('sorts by name ascending', () => {
+    it('sorts by name ascending', async () => {
       const customers = [
         createTestCustomer({ id: 'C1', accountOwner: 'Zack' }),
         createTestCustomer({ id: 'C2', accountOwner: 'Alice' }),
@@ -283,7 +283,7 @@ describe('SearchCustomersUseCase', () => {
       ];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ sortBy: 'name', sortOrder: 'asc' });
+      const result = await useCase.execute({ sortBy: 'name', sortOrder: 'asc' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -293,11 +293,11 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('returns applied filters list', () => {
+    it('returns applied filters list', async () => {
       const customers = [createTestCustomer({ id: 'CUST-001', billingCountry: 'Sweden' })];
       mockRepository.setCustomers(customers);
 
-      const result = useCase.execute({ country: 'Sweden', status: 'active' });
+      const result = await useCase.execute({ country: 'Sweden', status: 'active' });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -306,7 +306,7 @@ describe('SearchCustomersUseCase', () => {
       }
     });
 
-    it('filters by health status', () => {
+    it('filters by health status', async () => {
       // Create customers with different health levels
       const healthyCustomer = createTestCustomer({
         id: 'HEALTHY-001',
@@ -326,7 +326,7 @@ describe('SearchCustomersUseCase', () => {
       });
       mockRepository.setCustomers([healthyCustomer, atRiskCustomer]);
 
-      const result = useCase.execute({ healthStatus: 'healthy' });
+      const result = await useCase.execute({ healthStatus: 'healthy' });
 
       expect(result.success).toBe(true);
       if (result.success) {

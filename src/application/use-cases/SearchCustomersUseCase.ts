@@ -86,10 +86,10 @@ export class SearchCustomersUseCase {
   /**
    * Execute the search use case
    */
-  execute(input: SearchCustomersInput): Result<SearchCustomersOutput, string> {
+  async execute(input: SearchCustomersInput): Promise<Result<SearchCustomersOutput, string>> {
     try {
       // Get all customers
-      const allCustomers = this.customerReadRepository.getAll();
+      const allCustomers = await this.customerReadRepository.getAll();
 
       // Calculate health scores for all customers
       const healthScores = calculateAllHealthScores(allCustomers, this.healthScoreCalculator);

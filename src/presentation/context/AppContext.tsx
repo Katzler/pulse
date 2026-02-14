@@ -1,19 +1,36 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { compositionRoot, type UseCases } from '@application/composition';
+import { type CustomerRepository } from '@domain/repositories';
 import { HealthScoreCalculator } from '@domain/services';
-import { InMemoryCustomerRepository } from '@infrastructure/repositories';
+import { InMemoryCustomerRepository, SupabaseCustomerRepository } from '@infrastructure/repositories';
 
 /**
  * Application context value
  */
 interface AppContextValue {
   useCases: UseCases;
-  repository: InMemoryCustomerRepository;
+  repository: CustomerRepository;
   healthScoreCalculator: HealthScoreCalculator;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
+
+/**
+ * Create the appropriate repository based on environment configuration.
+ * Set VITE_USE_SUPABASE=true in .env.local to use Supabase persistence.
+ */
+function createRepository(healthScoreCalculator: HealthScoreCalculator): CustomerRepository {
+  const useSupabase = import.meta.env.VITE_USE_SUPABASE === 'true';
+
+  if (useSupabase) {
+    return new SupabaseCustomerRepository(healthScoreCalculator);
+  }
+
+  const repository = new InMemoryCustomerRepository();
+  repository.setHealthScoreCalculator(healthScoreCalculator);
+  return repository;
+}
 
 /**
  * Provider that initializes and provides the application context.
@@ -21,12 +38,8 @@ const AppContext = createContext<AppContextValue | null>(null);
  */
 export function AppProvider({ children }: { children: ReactNode }) {
   const contextValue = useMemo(() => {
-    // Create shared instances
-    const repository = new InMemoryCustomerRepository();
     const healthScoreCalculator = new HealthScoreCalculator();
-
-    // Set up health calculator on repository for statistics
-    repository.setHealthScoreCalculator(healthScoreCalculator);
+    const repository = createRepository(healthScoreCalculator);
 
     // Initialize composition root if not already done
     if (!compositionRoot.isInitialized()) {

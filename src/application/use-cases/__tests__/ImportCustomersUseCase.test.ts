@@ -98,7 +98,7 @@ class MockCustomerWriteRepository implements CustomerWriteRepository {
   }
 }
 
-describe('ImportCustomersUseCase', () => {
+describe('ImportCustomersUseCase', async () => {
   let useCase: ImportCustomersUseCase;
   let mockRepository: MockCustomerWriteRepository;
   let healthScoreCalculator: HealthScoreCalculator;
@@ -109,14 +109,14 @@ describe('ImportCustomersUseCase', () => {
     useCase = new ImportCustomersUseCase(mockRepository, healthScoreCalculator);
   });
 
-  describe('execute', () => {
-    it('successfully imports valid records', () => {
+  describe('execute', async () => {
+    it('successfully imports valid records', async () => {
       const records = [
         createTestRecord({ 'Sirvoy Customer ID': 'CUST-001' }),
         createTestRecord({ 'Sirvoy Customer ID': 'CUST-002', 'Account Owner': 'Jane Doe' }),
       ];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -126,7 +126,7 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('reports validation errors for missing required fields', () => {
+    it('reports validation errors for missing required fields', async () => {
       const records = [
         createTestRecord({ 'Sirvoy Customer ID': '' }),
         createTestRecord({ 'Account Owner': '' }),
@@ -134,7 +134,7 @@ describe('ImportCustomersUseCase', () => {
         createTestRecord({ 'Account Type': '' }),
       ];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -143,14 +143,14 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('reports row number in errors (1-based, accounting for header)', () => {
+    it('reports row number in errors (1-based, accounting for header)', async () => {
       const records = [
         createTestRecord({ 'Sirvoy Customer ID': '' }), // Row 2 (after header)
         createTestRecord({ 'Sirvoy Customer ID': 'VALID' }),
         createTestRecord({ 'Account Owner': '' }), // Row 4
       ];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -160,10 +160,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('parses DD/MM/YYYY date format', () => {
+    it('parses DD/MM/YYYY date format', async () => {
       const records = [createTestRecord({ 'Created Date': '25/12/2023' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -171,10 +171,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('parses DD/MM/YYYY, HH:mm datetime format', () => {
+    it('parses DD/MM/YYYY, HH:mm datetime format', async () => {
       const records = [createTestRecord({ 'Latest Login': '25/12/2023, 14:30' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -182,10 +182,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('reports error for invalid date format', () => {
+    it('reports error for invalid date format', async () => {
       const records = [createTestRecord({ 'Latest Login': 'invalid-date' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -194,10 +194,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('parses semicolon-separated languages', () => {
+    it('parses semicolon-separated languages', async () => {
       const records = [createTestRecord({ Languages: 'English;Swedish;Norwegian' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -207,10 +207,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('parses semicolon-separated channels', () => {
+    it('parses semicolon-separated channels', async () => {
       const records = [createTestRecord({ Channels: 'Booking.com;Expedia;Airbnb' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -219,10 +219,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('parses MRR value', () => {
+    it('parses MRR value', async () => {
       const records = [createTestRecord({ MRR: '2500.50' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -231,10 +231,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('handles MRR with currency symbols', () => {
+    it('handles MRR with currency symbols', async () => {
       const records = [createTestRecord({ MRR: '$1,500.00' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -243,10 +243,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('defaults empty MRR to 0', () => {
+    it('defaults empty MRR to 0', async () => {
       const records = [createTestRecord({ MRR: '' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -255,10 +255,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('maps Pro account type', () => {
+    it('maps Pro account type', async () => {
       const records = [createTestRecord({ 'Account Type': 'Pro' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -267,10 +267,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('maps Starter account type', () => {
+    it('maps Starter account type', async () => {
       const records = [createTestRecord({ 'Account Type': 'Starter' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -279,10 +279,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('maps active status', () => {
+    it('maps active status', async () => {
       const records = [createTestRecord({ Status: 'Active Customer' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -291,10 +291,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('maps inactive status', () => {
+    it('maps inactive status', async () => {
       const records = [createTestRecord({ Status: 'Inactive Customer' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -303,10 +303,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('calculates health scores for imported customers', () => {
+    it('calculates health scores for imported customers', async () => {
       const records = [createTestRecord({ 'Sirvoy Customer ID': 'CUST-001' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -317,11 +317,11 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('handles repository failure gracefully', () => {
+    it('handles repository failure gracefully', async () => {
       mockRepository.setShouldFail(true);
       const records = [createTestRecord()];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -329,7 +329,7 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('continues processing after individual record errors', () => {
+    it('continues processing after individual record errors', async () => {
       const records = [
         createTestRecord({ 'Sirvoy Customer ID': '' }), // Invalid
         createTestRecord({ 'Sirvoy Customer ID': 'VALID-001' }), // Valid
@@ -337,7 +337,7 @@ describe('ImportCustomersUseCase', () => {
         createTestRecord({ 'Sirvoy Customer ID': 'VALID-002' }), // Valid
       ];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -346,8 +346,8 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('returns empty result for empty input', () => {
-      const result = useCase.execute({ records: [] });
+    it('returns empty result for empty input', async () => {
+      const result = await useCase.execute({ records: [] });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -357,10 +357,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('handles empty Latest Login (customer never logged in)', () => {
+    it('handles empty Latest Login (customer never logged in)', async () => {
       const records = [createTestRecord({ 'Latest Login': '' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -372,10 +372,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('handles whitespace-only Latest Login as empty', () => {
+    it('handles whitespace-only Latest Login as empty', async () => {
       const records = [createTestRecord({ 'Latest Login': '   ' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -386,10 +386,10 @@ describe('ImportCustomersUseCase', () => {
       }
     });
 
-    it('calculates health score with 0 login recency points for null latestLogin', () => {
+    it('calculates health score with 0 login recency points for null latestLogin', async () => {
       const records = [createTestRecord({ 'Latest Login': '' })];
 
-      const result = useCase.execute({ records });
+      const result = await useCase.execute({ records });
 
       expect(result.success).toBe(true);
       if (result.success) {

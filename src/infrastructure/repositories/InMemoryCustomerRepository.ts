@@ -39,14 +39,14 @@ export class InMemoryCustomerRepository
   /**
    * Retrieve all customers
    */
-  getAll(): Customer[] {
+  async getAll(): Promise<Customer[]> {
     return Array.from(this.customers.values());
   }
 
   /**
    * Find a customer by their unique ID
    */
-  getById(id: CustomerId): Result<Customer, CustomerNotFoundError> {
+  async getById(id: CustomerId): Promise<Result<Customer, CustomerNotFoundError>> {
     // CustomerId is a branded string type, so we can use it directly as Map key
     const customer = this.customers.get(id);
     if (customer) {
@@ -65,8 +65,8 @@ export class InMemoryCustomerRepository
   /**
    * Search customers using multiple criteria
    */
-  search(criteria: SearchCriteria): Customer[] {
-    let results = this.getAll();
+  async search(criteria: SearchCriteria): Promise<Customer[]> {
+    let results = await this.getAll();
 
     // Text search (partial match on ID or account owner)
     if (criteria.query) {
@@ -122,7 +122,7 @@ export class InMemoryCustomerRepository
   /**
    * Get total customer count
    */
-  count(): number {
+  async count(): Promise<number> {
     return this.customers.size;
   }
 
@@ -131,7 +131,7 @@ export class InMemoryCustomerRepository
   /**
    * Add a single customer
    */
-  add(customer: Customer): Result<void, DuplicateCustomerError> {
+  async add(customer: Customer): Promise<Result<void, DuplicateCustomerError>> {
     if (this.customers.has(customer.id)) {
       return {
         success: false,
@@ -149,7 +149,7 @@ export class InMemoryCustomerRepository
   /**
    * Bulk add multiple customers
    */
-  addMany(customers: Customer[]): Result<ImportSummary, ImportError> {
+  async addMany(customers: Customer[]): Promise<Result<ImportSummary, ImportError>> {
     let successCount = 0;
     let skippedCount = 0;
 
@@ -176,7 +176,7 @@ export class InMemoryCustomerRepository
   /**
    * Remove all customers from the repository
    */
-  clear(): void {
+  async clear(): Promise<void> {
     this.customers.clear();
   }
 
@@ -185,8 +185,8 @@ export class InMemoryCustomerRepository
   /**
    * Get aggregate statistics for all customers
    */
-  getStatistics(): CustomerStatistics {
-    const customers = this.getAll();
+  async getStatistics(): Promise<CustomerStatistics> {
+    const customers = await this.getAll();
     const totalCount = customers.length;
 
     if (totalCount === 0) {
@@ -239,12 +239,12 @@ export class InMemoryCustomerRepository
   /**
    * Get health score distribution (healthy/at-risk/critical counts)
    */
-  getHealthDistribution(): HealthDistribution {
+  async getHealthDistribution(): Promise<HealthDistribution> {
     if (!this.healthScoreCalculator) {
       return { healthy: 0, atRisk: 0, critical: 0 };
     }
 
-    const customers = this.getAll();
+    const customers = await this.getAll();
     let healthy = 0;
     let atRisk = 0;
     let critical = 0;
@@ -272,8 +272,8 @@ export class InMemoryCustomerRepository
   /**
    * Get MRR totals grouped by country
    */
-  getMrrByCountry(): MrrByCountry[] {
-    const customers = this.getAll();
+  async getMrrByCountry(): Promise<MrrByCountry[]> {
+    const customers = await this.getAll();
     const countryMap = new Map<string, { totalMrr: number; customerCount: number }>();
 
     for (const customer of customers) {

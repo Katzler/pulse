@@ -82,17 +82,17 @@ export class GetDashboardOverviewUseCase {
   /**
    * Execute the dashboard overview use case
    */
-  execute(): Result<GetDashboardOverviewOutput, string> {
+  async execute(): Promise<Result<GetDashboardOverviewOutput, string>> {
     try {
       // Get all customers
-      const customers = this.customerReadRepository.getAll();
+      const customers = await this.customerReadRepository.getAll();
 
       // Calculate health scores for all customers
       const healthScores = calculateAllHealthScores(customers, this.healthScoreCalculator);
 
       // Get statistics from repository
-      const statistics = this.customerStatisticsRepository.getStatistics();
-      const healthDistribution = this.customerStatisticsRepository.getHealthDistribution();
+      const statistics = await this.customerStatisticsRepository.getStatistics();
+      const healthDistribution = await this.customerStatisticsRepository.getHealthDistribution();
 
       // Build dashboard metrics DTO
       const metrics = MetricsMapper.toDashboardMetricsDTO(

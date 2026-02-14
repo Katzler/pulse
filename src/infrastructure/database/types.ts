@@ -1,9 +1,8 @@
 export type Database = {
   public: {
     Tables: {
-      customers: {
+      customers_current: {
         Row: {
-          id: string;
           sirvoy_customer_id: string;
           account_owner: string;
           account_name: string;
@@ -21,35 +20,69 @@ export type Database = {
           channels: string[] | null;
           health_score: number;
           health_classification: string;
-          imported_at: string;
+          last_imported_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['customers']['Row'], 'id' | 'imported_at' | 'updated_at'>;
-        Update: Partial<Database['public']['Tables']['customers']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['customers_current']['Row'], 'last_imported_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['customers_current']['Insert']>;
       };
       health_score_history: {
         Row: {
-          id: string;
           sirvoy_customer_id: string;
+          snapshot_date: string;
           health_score: number;
           health_classification: string;
-          snapshot_date: string;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['health_score_history']['Row'], 'id' | 'created_at'>;
+        Insert: Omit<Database['public']['Tables']['health_score_history']['Row'], 'created_at'>;
         Update: Partial<Database['public']['Tables']['health_score_history']['Insert']>;
       };
-      customer_activity_log: {
+      health_alerts: {
         Row: {
           id: string;
           sirvoy_customer_id: string;
-          activity_type: string;
-          description: string | null;
-          metadata: Record<string, any> | null;
+          alert_type: string;
+          old_score: number | null;
+          new_score: number | null;
+          score_change: number | null;
+          message: string | null;
+          triggered_at: string;
+          acknowledged: boolean;
+          acknowledged_at: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['health_alerts']['Row'], 'id' | 'triggered_at'>;
+        Update: Partial<Database['public']['Tables']['health_alerts']['Insert']>;
+      };
+      portfolio_snapshots: {
+        Row: {
+          snapshot_date: string;
+          total_customers: number;
+          active_customers: number;
+          avg_health_score: number;
+          total_mrr: number;
+          healthy_count: number;
+          at_risk_count: number;
+          critical_count: number;
+          health_distribution: Record<string, number> | null;
+          mrr_by_country: Record<string, number> | null;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['customer_activity_log']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['customer_activity_log']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['portfolio_snapshots']['Row'], 'created_at'>;
+        Update: Partial<Database['public']['Tables']['portfolio_snapshots']['Insert']>;
+      };
+      import_history: {
+        Row: {
+          id: string;
+          import_type: string;
+          customers_imported: number;
+          customers_updated: number;
+          alerts_generated: number;
+          imported_at: string;
+          imported_by: string | null;
+          metadata: Record<string, any> | null;
+        };
+        Insert: Omit<Database['public']['Tables']['import_history']['Row'], 'id' | 'imported_at'>;
+        Update: Partial<Database['public']['Tables']['import_history']['Insert']>;
       };
     };
   };

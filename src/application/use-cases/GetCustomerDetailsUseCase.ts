@@ -45,9 +45,9 @@ export class GetCustomerDetailsUseCase {
   /**
    * Execute the get customer details use case
    */
-  execute(input: GetCustomerDetailsInput): Result<GetCustomerDetailsOutput, string> {
+  async execute(input: GetCustomerDetailsInput): Promise<Result<GetCustomerDetailsOutput, string>> {
     // Find the customer
-    const customerResult = this.customerReadRepository.getById(CustomerId.create(input.customerId));
+    const customerResult = await this.customerReadRepository.getById(CustomerId.create(input.customerId));
 
     if (!customerResult.success) {
       return {
@@ -74,7 +74,7 @@ export class GetCustomerDetailsUseCase {
     const breakdown = this.healthScoreCalculator.getFactorBreakdown(customer);
 
     // Get all customers for comparative metrics
-    const allCustomers = this.customerReadRepository.getAll();
+    const allCustomers = await this.customerReadRepository.getAll();
     const allHealthScores = calculateAllHealthScores(allCustomers, this.healthScoreCalculator);
 
     // Calculate comparative metrics

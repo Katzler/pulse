@@ -139,8 +139,8 @@ export function Import() {
    * Convert repository customers to CustomerSummaryDTO for the store
    * and compute dashboard metrics
    */
-  const updateCustomerStore = useCallback(() => {
-    const customers = repository.getAll();
+  const updateCustomerStore = useCallback(async () => {
+    const customers = await repository.getAll();
 
     // Track metrics while building summaries
     let activeCount = 0;
@@ -280,7 +280,7 @@ export function Import() {
       const mappedRecords = parseResult.value.records.map(mapToImportRecord);
 
       // Import customers using the shared use case
-      const importResultData = useCases.importCustomers.execute({ records: mappedRecords });
+      const importResultData = await useCases.importCustomers.execute({ records: mappedRecords });
 
       if (!importResultData.success) {
         addToast({
@@ -310,7 +310,7 @@ export function Import() {
 
       if (result.importedCount > 0) {
         // Update the customer store with imported data
-        updateCustomerStore();
+        await updateCustomerStore();
 
         addToast({
           type: result.errorCount > 0 ? 'warning' : 'success',
