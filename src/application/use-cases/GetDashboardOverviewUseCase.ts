@@ -4,6 +4,7 @@ import { type HealthScoreCalculator } from '@domain/services';
 import { type HealthScore, HealthScoreClassification } from '@domain/value-objects';
 import { type DashboardMetricsDTO } from '@application/dtos';
 import { MetricsMapper } from '@application/mappers';
+import { calculateAllHealthScores } from '@application/utils/calculateAllHealthScores';
 import { type Result } from '@shared/types';
 
 /**
@@ -87,7 +88,7 @@ export class GetDashboardOverviewUseCase {
       const customers = this.customerReadRepository.getAll();
 
       // Calculate health scores for all customers
-      const healthScores = this.calculateAllHealthScores(customers);
+      const healthScores = calculateAllHealthScores(customers, this.healthScoreCalculator);
 
       // Get statistics from repository
       const statistics = this.customerStatisticsRepository.getStatistics();
@@ -126,22 +127,6 @@ export class GetDashboardOverviewUseCase {
         error: `Failed to get dashboard overview: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
-  }
-
-  /**
-   * Calculate health scores for all customers
-   */
-  private calculateAllHealthScores(customers: Customer[]): Map<string, HealthScore> {
-    const scores = new Map<string, HealthScore>();
-
-    for (const customer of customers) {
-      const result = this.healthScoreCalculator.calculate(customer);
-      if (result.success) {
-        scores.set(customer.id, result.value);
-      }
-    }
-
-    return scores;
   }
 
   /**

@@ -13,10 +13,7 @@ export {
 
 // Branded types for type safety
 export {
-  CurrencyCode,
   CustomerId,
-  type DateString,
-  type DateTimeString,
   HealthScoreValue,
   MrrValue,
 } from './branded.types';
@@ -24,12 +21,7 @@ export {
 // Utility types
 export {
   type AsyncResult,
-  type DeepPartial,
-  type ElementOf,
   type Failure,
-  type Nullable,
-  type Optional,
-  type RequireKeys,
   Result,
   type Success,
 } from './utility.types';

@@ -4,7 +4,8 @@ import {
   type SentimentImportSummary,
   type SentimentWriteRepository,
 } from '@domain/repositories';
-import { type RawSentimentRecord, type Result } from '@shared/types';
+import { CustomerId, type RawSentimentRecord, type Result } from '@shared/types';
+import { parseDate } from '@application/utils/parseDate';
 
 /**
  * Import error for a specific row
@@ -75,7 +76,7 @@ export class ImportSentimentDataUseCase {
 
       // Check if customer exists
       const customerId = record['Account: Sirvoy Customer ID'].trim();
-      const customerResult = this.customerRepository.getById(customerId as never);
+      const customerResult = this.customerRepository.getById(CustomerId.create(customerId));
 
       if (!customerResult.success) {
         // Customer not found - track it but don't fail the import
@@ -106,13 +107,23 @@ export class ImportSentimentDataUseCase {
     // Store in repository
     const storeResult = this.sentimentRepository.addMany(interactions);
 
-    let importedCount = interactions.length;
     if (!storeResult.success) {
-      importedCount = 0;
-    } else {
-      const summary: SentimentImportSummary = storeResult.value;
-      importedCount = summary.successCount;
+      return {
+        success: true,
+        value: {
+          success: false,
+          totalRows: records.length,
+          importedCount: 0,
+          errorCount: errors.length + 1,
+          errors: [...errors, { row: 0, field: 'storage', message: 'Failed to persist sentiment data to repository' }],
+          customersUpdated: [],
+          customersNotFound: Array.from(customersNotFound),
+        },
+      };
     }
+
+    const summary: SentimentImportSummary = storeResult.value;
+    const importedCount = summary.successCount;
 
     return {
       success: true,
@@ -188,7 +199,7 @@ export class ImportSentimentDataUseCase {
       // Parse interaction date
       const interactionDateStr = record['Interaction: Created Date']?.trim();
       const interactionDate = interactionDateStr
-        ? this.parseDate(interactionDateStr)
+        ? parseDate(interactionDateStr)
         : new Date();
 
       if (!interactionDate) {
@@ -219,40 +230,4 @@ export class ImportSentimentDataUseCase {
     }
   }
 
-  /**
-   * Parse date from DD/MM/YYYY or DD/MM/YYYY, HH:mm format
-   */
-  private parseDate(dateStr: string): Date | null {
-    if (!dateStr?.trim()) {
-      return null;
-    }
-
-    try {
-      // Try DD/MM/YYYY, HH:mm format
-      const dateTimeMatch = dateStr.match(
-        /(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s*(\d{1,2}):(\d{2})/
-      );
-      if (dateTimeMatch) {
-        const [, day, month, year, hour, minute] = dateTimeMatch;
-        return new Date(
-          parseInt(year),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(hour),
-          parseInt(minute)
-        );
-      }
-
-      // Try DD/MM/YYYY format
-      const dateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (dateMatch) {
-        const [, day, month, year] = dateMatch;
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  }
 }

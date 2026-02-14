@@ -155,14 +155,14 @@ function CustomLegend({
  * Custom label renderer for pie segments
  */
 function renderCustomLabel(props: {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  percent: number;
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
 }): JSX.Element | null {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+  const { cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 } = props;
 
   if (percent < 0.05) return null; // Don't show labels for very small segments
 
@@ -249,8 +249,7 @@ export function HealthDistributionChart({
             nameKey="name"
             onClick={(_, index) => handleClick(chartData[index])}
             style={{ cursor: onSegmentClick ? 'pointer' : 'default' }}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            label={showLabels ? (renderCustomLabel as any) : false}
+            label={showLabels ? renderCustomLabel : false}
             labelLine={false}
             isAnimationActive={false}
           >
@@ -266,14 +265,12 @@ export function HealthDistributionChart({
           <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
           {showLegend && (
             <Legend
-              /* eslint-disable @typescript-eslint/no-explicit-any */
-              content={((props: any) => {
-                const payload = props.payload as readonly LegendEntry[];
+              content={(props) => {
+                const payload = props.payload as readonly LegendEntry[] | undefined;
                 return payload ? (
                   <CustomLegend payload={payload} total={total} />
                 ) : null;
-              }) as any}
-              /* eslint-enable @typescript-eslint/no-explicit-any */
+              }}
               verticalAlign="bottom"
             />
           )}

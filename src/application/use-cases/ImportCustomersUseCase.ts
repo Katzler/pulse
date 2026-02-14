@@ -3,6 +3,7 @@ import { type CustomerWriteRepository, type ImportSummary } from '@domain/reposi
 import { type HealthScoreCalculator } from '@domain/services';
 import { type HealthScore } from '@domain/value-objects';
 import { AccountType, CustomerStatus, type Result } from '@shared/types';
+import { parseDate } from '@application/utils/parseDate';
 
 /**
  * Import error for a specific row
@@ -166,12 +167,12 @@ export class ImportCustomersUseCase {
       // Parse dates (expected format: DD/MM/YYYY, HH:mm or DD/MM/YYYY)
       // Latest Login can be empty (customer never logged in)
       const latestLoginStr = record['Latest Login']?.trim();
-      const latestLogin = latestLoginStr ? this.parseDate(latestLoginStr) : null;
-      const createdDate = this.parseDate(record['Created Date']);
+      const latestLogin = latestLoginStr ? parseDate(latestLoginStr) : null;
+      const createdDate = parseDate(record['Created Date']);
 
       // Parse last CS contact date (optional)
       const lastCsContactDateStr = record['Last Customer Success Contact Date']?.trim();
-      const lastCsContactDate = lastCsContactDateStr ? this.parseDate(lastCsContactDateStr) : null;
+      const lastCsContactDate = lastCsContactDateStr ? parseDate(lastCsContactDateStr) : null;
 
       // If latestLogin string was provided but couldn't be parsed, it's an error
       if (latestLoginStr && latestLogin === null) {
@@ -232,41 +233,6 @@ export class ImportCustomersUseCase {
         success: false,
         error: `Unexpected error converting row ${row}: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
-    }
-  }
-
-  /**
-   * Parse date from DD/MM/YYYY or DD/MM/YYYY, HH:mm format
-   */
-  private parseDate(dateStr: string): Date | null {
-    if (!dateStr?.trim()) {
-      return null;
-    }
-
-    try {
-      // Try DD/MM/YYYY, HH:mm format
-      const dateTimeMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s*(\d{1,2}):(\d{2})/);
-      if (dateTimeMatch) {
-        const [, day, month, year, hour, minute] = dateTimeMatch;
-        return new Date(
-          parseInt(year),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(hour),
-          parseInt(minute)
-        );
-      }
-
-      // Try DD/MM/YYYY format
-      const dateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (dateMatch) {
-        const [, day, month, year] = dateMatch;
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      }
-
-      return null;
-    } catch {
-      return null;
     }
   }
 

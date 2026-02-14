@@ -30,21 +30,6 @@ export type HealthScoreValue = Brand<number, 'HealthScoreValue'>;
 export type MrrValue = Brand<number, 'MrrValue'>;
 
 /**
- * ISO 4217 currency code (e.g., USD, EUR, GBP)
- */
-export type CurrencyCode = Brand<string, 'CurrencyCode'>;
-
-/**
- * Date string in DD/MM/YYYY format from CSV
- */
-export type DateString = Brand<string, 'DateString'>;
-
-/**
- * DateTime string in DD/MM/YYYY, HH:mm format from CSV
- */
-export type DateTimeString = Brand<string, 'DateTimeString'>;
-
-/**
  * Type guard and constructor functions for branded types
  */
 export const CustomerId = {
@@ -70,6 +55,3 @@ export const MrrValue = {
   },
 };
 
-export const CurrencyCode = {
-  create: (value: string): CurrencyCode => value.toUpperCase() as CurrencyCode,
-};

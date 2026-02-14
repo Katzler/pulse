@@ -19,7 +19,6 @@ import {
   EmptyState,
   HeartPulseIcon,
   HealthScoreFormulaTooltip,
-  LoadingSkeleton,
   MetricCard,
   PageErrorBoundary,
   UsersIcon,
@@ -103,66 +102,6 @@ function formatLastUpdated(date: Date): string {
     hour: 'numeric',
     minute: '2-digit',
   });
-}
-
-/**
- * Skeleton loader for metric cards
- */
-function MetricCardSkeleton() {
-  return (
-    <Card className="p-4">
-      <LoadingSkeleton width={100} height={16} className="mb-2" />
-      <LoadingSkeleton width={80} height={32} className="mb-1" />
-      <LoadingSkeleton width={60} height={14} />
-    </Card>
-  );
-}
-
-/**
- * Skeleton loader for chart sections
- */
-function ChartSkeleton() {
-  return (
-    <Card className="p-4">
-      <LoadingSkeleton width={150} height={20} className="mb-4" />
-      <LoadingSkeleton height={200} variant="rectangular" />
-    </Card>
-  );
-}
-
-/**
- * Loading state for the dashboard
- */
-function DashboardLoading() {
-  return (
-    <div className="space-y-6" data-testid="dashboard-loading">
-      {/* Header skeleton */}
-      <div className="flex items-center justify-between">
-        <div>
-          <LoadingSkeleton width={200} height={28} className="mb-2" />
-          <LoadingSkeleton width={300} height={16} />
-        </div>
-        <LoadingSkeleton width={150} height={16} />
-      </div>
-
-      {/* Metric cards skeleton */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-        <MetricCardSkeleton />
-      </div>
-
-      {/* Charts skeleton */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ChartSkeleton />
-        <ChartSkeleton />
-        <ChartSkeleton />
-        <ChartSkeleton />
-      </div>
-    </div>
-  );
 }
 
 /**
@@ -416,13 +355,6 @@ function DashboardContent() {
  * - Mobile: Single column layout
  */
 export function Dashboard() {
-  // Loading state will be connected in later tasks
-  const isLoading = false;
-
-  if (isLoading) {
-    return <DashboardLoading />;
-  }
-
   return (
     <PageErrorBoundary pageName="Dashboard">
       <DashboardContent />

@@ -4,6 +4,7 @@ import { type HealthScoreCalculator } from '@domain/services';
 import { type HealthScore, HealthScoreClassification } from '@domain/value-objects';
 import { type CustomerSummaryDTO } from '@application/dtos';
 import { CustomerMapper } from '@application/mappers';
+import { calculateAllHealthScores } from '@application/utils/calculateAllHealthScores';
 import { type Result } from '@shared/types';
 
 /**
@@ -91,7 +92,7 @@ export class SearchCustomersUseCase {
       const allCustomers = this.customerReadRepository.getAll();
 
       // Calculate health scores for all customers
-      const healthScores = this.calculateAllHealthScores(allCustomers);
+      const healthScores = calculateAllHealthScores(allCustomers, this.healthScoreCalculator);
 
       // Apply filters
       let filteredCustomers = this.applyFilters(allCustomers, input, healthScores);
@@ -246,11 +247,11 @@ export class SearchCustomersUseCase {
         break;
 
       default:
-        // Default: sort by health score descending (show at-risk first)
+        // Default: sort by health score ascending (show at-risk first)
         sorted.sort((a, b) => {
           const scoreA = healthScores.get(a.id)?.value ?? 0;
           const scoreB = healthScores.get(b.id)?.value ?? 0;
-          return scoreA - scoreB; // Ascending by default to show at-risk first
+          return scoreA - scoreB;
         });
     }
 
@@ -305,19 +306,4 @@ export class SearchCustomersUseCase {
     }
   }
 
-  /**
-   * Calculate health scores for all customers
-   */
-  private calculateAllHealthScores(customers: Customer[]): Map<string, HealthScore> {
-    const scores = new Map<string, HealthScore>();
-
-    for (const customer of customers) {
-      const result = this.healthScoreCalculator.calculate(customer);
-      if (result.success) {
-        scores.set(customer.id, result.value);
-      }
-    }
-
-    return scores;
-  }
 }

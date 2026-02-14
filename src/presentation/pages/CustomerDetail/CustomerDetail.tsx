@@ -7,7 +7,6 @@ import type {
   CustomerTimelineDTO,
   HealthScoreBreakdownDTO,
 } from '@application/dtos';
-import { compositionRoot } from '@application/composition';
 import type { CustomerSentimentSummary } from '@domain/repositories';
 import type { GetCustomerDetailsOutput } from '@application/use-cases';
 import { HealthScoreGauge } from '@presentation/components/charts';
@@ -20,7 +19,7 @@ import {
   LoadingSkeleton,
   PageErrorBoundary,
 } from '@presentation/components/common';
-import { useSentimentRepository } from '@presentation/context';
+import { useSentimentRepository, useUseCases } from '@presentation/context';
 
 /**
  * Format currency for display
@@ -333,7 +332,9 @@ function SentimentSection({ sentiment }: SentimentSectionProps): JSX.Element {
 
   // Copy case number to clipboard
   const handleCopyCase = (caseNumber: string) => {
-    navigator.clipboard.writeText(caseNumber);
+    navigator.clipboard.writeText(caseNumber).catch(() => {
+      // Clipboard access denied or unavailable
+    });
   };
 
   return (
@@ -776,7 +777,8 @@ export function CustomerDetail(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get sentiment repository to fetch sentiment data
+  // Get use cases and sentiment repository from context
+  const useCases = useUseCases();
   const sentimentRepository = useSentimentRepository();
 
   // Get sentiment data for this customer
@@ -796,7 +798,6 @@ export function CustomerDetail(): JSX.Element {
     setIsLoading(true);
     setError(null);
 
-    const useCases = compositionRoot.getUseCases();
     const result = useCases.getCustomerDetails.execute({ customerId });
 
     if (result.success) {
@@ -805,7 +806,7 @@ export function CustomerDetail(): JSX.Element {
       setError(result.error);
     }
     setIsLoading(false);
-  }, [customerId]);
+  }, [customerId, useCases]);
 
   // Fetch customer details on mount and when customerId changes
   useEffect(() => {

@@ -69,19 +69,13 @@ const mockTimeline: CustomerTimelineDTO = {
 // Mock execute function
 const mockExecute = vi.fn();
 
-// Mock the composition root module
-vi.mock('@application/composition', () => ({
-  compositionRoot: {
-    getUseCases: () => ({
-      getCustomerDetails: {
-        execute: mockExecute,
-      },
-    }),
-  },
-}));
-
-// Mock the useSentimentRepository hook
+// Mock the context hooks (useUseCases and useSentimentRepository)
 vi.mock('@presentation/context', () => ({
+  useUseCases: vi.fn(() => ({
+    getCustomerDetails: {
+      execute: mockExecute,
+    },
+  })),
   useSentimentRepository: vi.fn(() => ({
     getSummaryByCustomerId: vi.fn(() => ({
       success: false,

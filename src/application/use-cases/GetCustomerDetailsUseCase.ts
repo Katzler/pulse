@@ -9,6 +9,7 @@ import {
   type HealthScoreBreakdownDTO,
 } from '@application/dtos';
 import { CustomerMapper, HealthScoreMapper } from '@application/mappers';
+import { calculateAllHealthScores } from '@application/utils/calculateAllHealthScores';
 import { CustomerId, type Result } from '@shared/types';
 
 /**
@@ -74,7 +75,7 @@ export class GetCustomerDetailsUseCase {
 
     // Get all customers for comparative metrics
     const allCustomers = this.customerReadRepository.getAll();
-    const allHealthScores = this.calculateAllHealthScores(allCustomers);
+    const allHealthScores = calculateAllHealthScores(allCustomers, this.healthScoreCalculator);
 
     // Calculate comparative metrics
     const comparativeMetrics = this.calculateComparativeMetrics(customer, healthScore, allCustomers, allHealthScores);
@@ -95,22 +96,6 @@ export class GetCustomerDetailsUseCase {
         timeline,
       },
     };
-  }
-
-  /**
-   * Calculate health scores for all customers
-   */
-  private calculateAllHealthScores(customers: Customer[]): Map<string, HealthScore> {
-    const scores = new Map<string, HealthScore>();
-
-    for (const customer of customers) {
-      const result = this.healthScoreCalculator.calculate(customer);
-      if (result.success) {
-        scores.set(customer.id, result.value);
-      }
-    }
-
-    return scores;
   }
 
   /**

@@ -3,33 +3,6 @@
  */
 
 /**
- * Makes a type nullable (T | null)
- */
-export type Nullable<T> = T | null;
-
-/**
- * Makes all properties of T optional and nullable
- */
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P] | undefined;
-};
-
-/**
- * Extracts the element type from an array type
- */
-export type ElementOf<T> = T extends readonly (infer E)[] ? E : never;
-
-/**
- * Makes specific keys required while keeping others unchanged
- */
-export type RequireKeys<T, K extends keyof T> = T & Required<Pick<T, K>>;
-
-/**
- * Makes specific keys optional while keeping others unchanged
- */
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-/**
  * Result type for explicit error handling.
  * Follows the functional programming pattern of returning
  * either a success value or an error, never throwing.
