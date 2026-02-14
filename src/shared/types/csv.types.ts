@@ -90,28 +90,3 @@ export const CSV_HEADERS: (keyof RawCustomerRecord)[] = [
   'MRR (converted)',
   'Channels',
 ];
-
-/**
- * Raw record structure for sentiment/chat interaction data.
- * Field names match the CSV column headers exactly.
- */
-export interface RawSentimentRecord {
-  /** Sentiment score from chat analysis (-1 to +1) */
-  'Customer Sentiment Score': string;
-  /** Date of the interaction in DD/MM/YYYY format */
-  'Interaction: Created Date': string;
-  /** Salesforce case number for lookup */
-  Case: string;
-  /** Customer ID to match with customer records */
-  'Account: Sirvoy Customer ID': string;
-}
-
-/**
- * List of all sentiment CSV column headers for validation
- */
-export const SENTIMENT_CSV_HEADERS: (keyof RawSentimentRecord)[] = [
-  'Customer Sentiment Score',
-  'Interaction: Created Date',
-  'Case',
-  'Account: Sirvoy Customer ID',
-];

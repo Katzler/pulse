@@ -1,20 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { type Customer, type SentimentInteraction } from '@domain/entities';
+import { type Customer } from '@domain/entities';
 import {
   type CustomerReadRepository,
   type CustomerStatistics,
   type CustomerStatisticsRepository,
   type CustomerWriteRepository,
-  type CustomerSentimentSummary,
   type HealthDistribution,
   type ImportSummary,
   type MrrByCountry,
   type SearchCriteria,
-  type SentimentImportSummary,
-  type SentimentNotFoundError,
-  type SentimentReadRepository,
-  type SentimentWriteRepository,
 } from '@domain/repositories';
 import { HealthScoreCalculator } from '@domain/services';
 import {
@@ -84,55 +79,6 @@ class MockCustomerStatisticsRepository implements CustomerStatisticsRepository {
   }
 }
 
-class MockSentimentReadRepository implements SentimentReadRepository {
-  getByCustomerId(_customerId: string): SentimentInteraction[] {
-    return [];
-  }
-  getSummaryByCustomerId(
-    customerId: string
-  ): Result<CustomerSentimentSummary, SentimentNotFoundError> {
-    return {
-      success: false,
-      error: {
-        type: 'SENTIMENT_NOT_FOUND',
-        message: 'Not found',
-        details: { customerId },
-      },
-    };
-  }
-  getCustomerIdsWithSentiment(): string[] {
-    return [];
-  }
-  hasSentimentData(_customerId: string): boolean {
-    return false;
-  }
-  count(): number {
-    return 0;
-  }
-}
-
-class MockSentimentWriteRepository implements SentimentWriteRepository {
-  add(_interaction: SentimentInteraction): Result<void, { message: string }> {
-    return { success: true, value: undefined };
-  }
-  addMany(
-    _interactions: SentimentInteraction[]
-  ): Result<SentimentImportSummary, { message: string }> {
-    return {
-      success: true,
-      value: {
-        totalProcessed: 0,
-        successCount: 0,
-        failedCount: 0,
-        skippedCount: 0,
-        customersUpdated: [],
-      },
-    };
-  }
-  clear(): void {}
-  clearByCustomerId(_customerId: string): void {}
-}
-
 describe('CompositionRoot', () => {
   let root: CompositionRoot;
   let dependencies: ApplicationDependencies;
@@ -143,8 +89,6 @@ describe('CompositionRoot', () => {
       customerReadRepository: new MockCustomerReadRepository(),
       customerWriteRepository: new MockCustomerWriteRepository(),
       customerStatisticsRepository: new MockCustomerStatisticsRepository(),
-      sentimentReadRepository: new MockSentimentReadRepository(),
-      sentimentWriteRepository: new MockSentimentWriteRepository(),
       healthScoreCalculator: new HealthScoreCalculator(),
     };
   });
@@ -280,8 +224,6 @@ describe('compositionRoot singleton', () => {
       customerReadRepository: new MockCustomerReadRepository(),
       customerWriteRepository: new MockCustomerWriteRepository(),
       customerStatisticsRepository: new MockCustomerStatisticsRepository(),
-      sentimentReadRepository: new MockSentimentReadRepository(),
-      sentimentWriteRepository: new MockSentimentWriteRepository(),
       healthScoreCalculator: new HealthScoreCalculator(),
     };
 

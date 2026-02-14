@@ -47,7 +47,6 @@ const mockHealthBreakdown: HealthScoreBreakdownDTO = {
   channelAdoptionScore: 15,
   accountTypeScore: 10,
   mrrScore: 0,
-  sentimentAdjustment: 0,
   totalScore: 75,
 };
 
@@ -69,18 +68,12 @@ const mockTimeline: CustomerTimelineDTO = {
 // Mock execute function
 const mockExecute = vi.fn();
 
-// Mock the context hooks (useUseCases and useSentimentRepository)
+// Mock the context hooks (useUseCases)
 vi.mock('@presentation/context', () => ({
   useUseCases: vi.fn(() => ({
     getCustomerDetails: {
       execute: mockExecute,
     },
-  })),
-  useSentimentRepository: vi.fn(() => ({
-    getSummaryByCustomerId: vi.fn(() => ({
-      success: false,
-      error: { type: 'SENTIMENT_NOT_FOUND', message: 'Not found', details: { customerId: '' } },
-    })),
   })),
 }));
 

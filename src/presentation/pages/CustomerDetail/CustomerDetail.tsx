@@ -7,7 +7,6 @@ import type {
   CustomerTimelineDTO,
   HealthScoreBreakdownDTO,
 } from '@application/dtos';
-import type { CustomerSentimentSummary } from '@domain/repositories';
 import type { GetCustomerDetailsOutput } from '@application/use-cases';
 import { HealthScoreGauge } from '@presentation/components/charts';
 import {
@@ -19,7 +18,7 @@ import {
   LoadingSkeleton,
   PageErrorBoundary,
 } from '@presentation/components/common';
-import { useSentimentRepository, useUseCases } from '@presentation/context';
+import { useUseCases } from '@presentation/context';
 
 /**
  * Format currency for display
@@ -295,109 +294,6 @@ function ChannelsSection({ customer }: ChannelsSectionProps): JSX.Element {
 }
 
 /**
- * Sentiment section showing customer chat interaction sentiment
- */
-interface SentimentSectionProps {
-  sentiment: CustomerSentimentSummary | null;
-}
-
-function SentimentSection({ sentiment }: SentimentSectionProps): JSX.Element {
-  if (!sentiment) {
-    return (
-      <Card data-testid="sentiment-section">
-        <SectionHeader
-          title="Chat Sentiment"
-          icon={
-            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          }
-        />
-        <p className="text-gray-500 dark:text-gray-400 text-sm">No sentiment data available</p>
-      </Card>
-    );
-  }
-
-  // Determine sentiment classification
-  const getSentimentLabel = (score: number): { label: string; color: string; bgColor: string } => {
-    if (score >= 0.3) return { label: 'Positive', color: 'text-green-700 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/30' };
-    if (score <= -0.3) return { label: 'Negative', color: 'text-red-700 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30' };
-    return { label: 'Neutral', color: 'text-gray-700 dark:text-gray-400', bgColor: 'bg-gray-100 dark:bg-surface-700' };
-  };
-
-  const sentimentInfo = getSentimentLabel(sentiment.averageSentimentScore);
-  const scoreDisplay = sentiment.averageSentimentScore >= 0
-    ? `+${sentiment.averageSentimentScore.toFixed(2)}`
-    : sentiment.averageSentimentScore.toFixed(2);
-
-  // Copy case number to clipboard
-  const handleCopyCase = (caseNumber: string) => {
-    navigator.clipboard.writeText(caseNumber).catch(() => {
-      // Clipboard access denied or unavailable
-    });
-  };
-
-  return (
-    <Card data-testid="sentiment-section">
-      <SectionHeader
-        title="Chat Sentiment"
-        icon={
-          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        }
-      />
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Average Score</p>
-          <div className="flex items-center gap-2">
-            <span className={`text-2xl font-bold ${sentimentInfo.color}`} data-testid="sentiment-score">
-              {scoreDisplay}
-            </span>
-            <Badge variant={sentiment.averageSentimentScore >= 0.3 ? 'success' : sentiment.averageSentimentScore <= -0.3 ? 'error' : 'default'}>
-              {sentimentInfo.label}
-            </Badge>
-          </div>
-        </div>
-        <div className="p-3 bg-gray-50 dark:bg-surface-700 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Interactions</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white" data-testid="sentiment-count">
-            {sentiment.interactionCount}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            chat{sentiment.interactionCount !== 1 ? 's' : ''} recorded
-          </p>
-        </div>
-      </div>
-
-      {/* Case numbers for Salesforce lookup */}
-      {sentiment.caseNumbers.length > 0 && (
-        <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Salesforce Cases ({sentiment.caseNumbers.length})
-          </p>
-          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto" data-testid="case-numbers">
-            {sentiment.caseNumbers.map((caseNumber) => (
-              <button
-                key={caseNumber}
-                onClick={() => handleCopyCase(caseNumber)}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded border border-gray-200 dark:border-surface-600 transition-colors"
-                title="Click to copy"
-              >
-                {caseNumber}
-                <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
-
-/**
  * Health score breakdown section
  */
 interface HealthBreakdownSectionProps {
@@ -428,9 +324,6 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
     { label: 'Account Type', score: breakdown.accountTypeScore, max: 15, color: 'bg-orange-500' },
     { label: 'MRR Value', score: breakdown.mrrScore, max: 10, color: 'bg-pink-500' },
   ];
-
-  // Calculate base score without sentiment
-  const baseScore = factors.reduce((sum, f) => sum + f.score, 0);
 
   return (
     <Card data-testid="health-breakdown-section">
@@ -467,21 +360,6 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
           );
         })}
 
-        {/* Sentiment Adjustment - show only if non-zero */}
-        {breakdown.sentimentAdjustment !== 0 && (
-          <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-surface-700">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                Sentiment Adjustment
-                <span className="text-xs text-gray-500 dark:text-gray-400">(from chat data)</span>
-              </span>
-              <span className={`font-medium ${breakdown.sentimentAdjustment > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} data-testid="sentiment-adjustment">
-                {breakdown.sentimentAdjustment > 0 ? '+' : ''}{breakdown.sentimentAdjustment}
-              </span>
-            </div>
-          </div>
-        )}
-
         <div className="pt-4 border-t border-gray-200 dark:border-surface-700">
           <div className="flex justify-between text-base font-semibold">
             <span className="text-gray-900 dark:text-white">Total Health Score</span>
@@ -489,11 +367,6 @@ function HealthBreakdownSection({ breakdown }: HealthBreakdownSectionProps): JSX
               {breakdown.totalScore} / 100
             </span>
           </div>
-          {breakdown.sentimentAdjustment !== 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Base score: {baseScore} {breakdown.sentimentAdjustment > 0 ? '+' : ''} {breakdown.sentimentAdjustment} sentiment = {breakdown.totalScore}
-            </p>
-          )}
         </div>
       </div>
     </Card>
@@ -725,7 +598,6 @@ interface CustomerDetailContentProps {
   healthBreakdown: HealthScoreBreakdownDTO | null;
   comparativeMetrics: ComparativeMetricsDTO | null;
   timeline: CustomerTimelineDTO | null;
-  sentiment: CustomerSentimentSummary | null;
 }
 
 function CustomerDetailContent({
@@ -733,7 +605,6 @@ function CustomerDetailContent({
   healthBreakdown,
   comparativeMetrics,
   timeline,
-  sentiment,
 }: CustomerDetailContentProps): JSX.Element {
   return (
     <div className="space-y-6" data-testid="customer-detail-content">
@@ -747,9 +618,6 @@ function CustomerDetailContent({
         <ChannelsSection customer={customer} />
         <TimelineSection timeline={timeline} lastCsContactDate={customer.lastCsContactDate} />
       </div>
-
-      {/* Sentiment section - full width */}
-      <SentimentSection sentiment={sentiment} />
 
       {/* Health breakdown - full width */}
       <HealthBreakdownSection breakdown={healthBreakdown} />
@@ -766,7 +634,6 @@ function CustomerDetailContent({
  * Features:
  * - Customer header with health score gauge
  * - Contact and business information
- * - Chat sentiment data with case numbers
  * - Health score breakdown with factor analysis
  * - Comparative metrics vs portfolio average
  * - Account timeline
@@ -777,15 +644,8 @@ export function CustomerDetail(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get use cases and sentiment repository from context
+  // Get use cases from context
   const useCases = useUseCases();
-  const sentimentRepository = useSentimentRepository();
-
-  // Get sentiment data for this customer
-  const sentimentSummary = customerId
-    ? sentimentRepository.getSummaryByCustomerId(customerId)
-    : { success: false as const, error: { type: 'SENTIMENT_NOT_FOUND' as const, message: 'No customer ID', details: { customerId: '' } } };
-  const sentiment = sentimentSummary.success ? sentimentSummary.value : null;
 
   // Fetch customer details using the use case
   const fetchCustomerDetails = useCallback(async () => {
@@ -837,7 +697,6 @@ export function CustomerDetail(): JSX.Element {
         healthBreakdown={customerDetails.healthScore}
         comparativeMetrics={customerDetails.comparativeMetrics}
         timeline={customerDetails.timeline}
-        sentiment={sentiment}
       />
     </PageErrorBoundary>
   );

@@ -17,7 +17,6 @@ export const HealthScoreMapper = {
       channelAdoptionScore: breakdown.channelAdoption,
       accountTypeScore: breakdown.accountType,
       mrrScore: breakdown.mrrValue,
-      sentimentAdjustment: breakdown.sentimentAdjustment,
     };
   },
 };

@@ -15,6 +15,4 @@ export interface HealthScoreBreakdownDTO {
   accountTypeScore: number;
   /** MRR value factor score (0-10) */
   mrrScore: number;
-  /** Sentiment adjustment (-15 to +5) */
-  sentimentAdjustment: number;
 }

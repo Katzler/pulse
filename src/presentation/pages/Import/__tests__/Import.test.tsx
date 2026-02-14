@@ -20,13 +20,9 @@ vi.mock('react-router-dom', async () => {
 
 // Mock CsvParser as a class
 const mockParseFile = vi.fn();
-const mockSentimentParseFile = vi.fn();
 vi.mock('@infrastructure/csv', () => ({
   CsvParser: class MockCsvParser {
     parseFile = mockParseFile;
-  },
-  SentimentCsvParser: class MockSentimentCsvParser {
-    parseFile = mockSentimentParseFile;
   },
 }));
 
@@ -58,19 +54,6 @@ vi.mock('@infrastructure/repositories', () => ({
     });
     getAll = vi.fn().mockReturnValue([]);
     setHealthScoreCalculator = vi.fn();
-  },
-  InMemorySentimentRepository: class MockInMemorySentimentRepository {
-    addMany = vi.fn().mockReturnValue({
-      success: true,
-      value: { successCount: 0, failedCount: 0, skippedCount: 0, customersUpdated: [] },
-    });
-    getByCustomerId = vi.fn().mockReturnValue([]);
-    getSummaryByCustomerId = vi.fn().mockReturnValue({ success: false, error: { type: 'SENTIMENT_NOT_FOUND', message: 'Not found', details: { customerId: '' } } });
-    getCustomerIdsWithSentiment = vi.fn().mockReturnValue([]);
-    hasSentimentData = vi.fn().mockReturnValue(false);
-    count = vi.fn().mockReturnValue(0);
-    clear = vi.fn();
-    clearByCustomerId = vi.fn();
   },
 }));
 
@@ -149,7 +132,7 @@ describe('Import', () => {
     it('renders page description', () => {
       renderImport();
 
-      expect(screen.getByText(/upload csv files to import customer and sentiment data/i)).toBeInTheDocument();
+      expect(screen.getByText(/upload a csv file to import customer data/i)).toBeInTheDocument();
     });
 
     it('renders file upload component', () => {

@@ -2,15 +2,12 @@ import {
   type CustomerReadRepository,
   type CustomerStatisticsRepository,
   type CustomerWriteRepository,
-  type SentimentReadRepository,
-  type SentimentWriteRepository,
 } from '@domain/repositories';
 import { type HealthScoreCalculator } from '@domain/services';
 import {
   GetCustomerDetailsUseCase,
   GetDashboardOverviewUseCase,
   ImportCustomersUseCase,
-  ImportSentimentDataUseCase,
   SearchCustomersUseCase,
 } from '@application/use-cases';
 
@@ -22,8 +19,6 @@ export interface ApplicationDependencies {
   customerReadRepository: CustomerReadRepository;
   customerWriteRepository: CustomerWriteRepository;
   customerStatisticsRepository: CustomerStatisticsRepository;
-  sentimentReadRepository: SentimentReadRepository;
-  sentimentWriteRepository: SentimentWriteRepository;
 
   // Domain Services
   healthScoreCalculator: HealthScoreCalculator;
@@ -34,7 +29,6 @@ export interface ApplicationDependencies {
  */
 export interface UseCases {
   importCustomers: ImportCustomersUseCase;
-  importSentimentData: ImportSentimentDataUseCase;
   getDashboardOverview: GetDashboardOverviewUseCase;
   searchCustomers: SearchCustomersUseCase;
   getCustomerDetails: GetCustomerDetailsUseCase;
@@ -69,10 +63,6 @@ export class CompositionRoot {
       importCustomers: new ImportCustomersUseCase(
         dependencies.customerWriteRepository,
         dependencies.healthScoreCalculator
-      ),
-      importSentimentData: new ImportSentimentDataUseCase(
-        dependencies.sentimentWriteRepository,
-        dependencies.customerReadRepository
       ),
       getDashboardOverview: new GetDashboardOverviewUseCase(
         dependencies.customerReadRepository,

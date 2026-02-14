@@ -11,12 +11,3 @@ export {
   type MrrByCountry,
   type SearchCriteria,
 } from './CustomerRepository';
-
-export {
-  type CustomerSentimentSummary,
-  type SentimentImportSummary,
-  type SentimentNotFoundError,
-  type SentimentReadRepository,
-  type SentimentRepository,
-  type SentimentWriteRepository,
-} from './SentimentRepository';

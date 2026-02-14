@@ -11,7 +11,6 @@ export interface FactorBreakdown {
   channelAdoption: number;
   accountType: number;
   mrrValue: number;
-  sentimentAdjustment: number;
   total: number;
 }
 
@@ -87,24 +86,6 @@ const CHANNEL_POINTS: Record<number, number> = {
 };
 
 /**
- * Options for health score calculation
- */
-export interface HealthScoreOptions {
-  /** Average sentiment score (-1 to +1), if available */
-  averageSentimentScore?: number;
-}
-
-/**
- * Maximum points that sentiment can reduce from the score
- * Sentiment ranges from -1 to +1:
- * - At -1 (worst): reduces score by 15 points
- * - At 0 (neutral): no adjustment
- * - At +1 (best): adds 5 points bonus
- */
-const SENTIMENT_MAX_PENALTY = 15;
-const SENTIMENT_MAX_BONUS = 5;
-
-/**
  * HealthScoreCalculator Domain Service
  *
  * Calculates customer health scores based on weighted factors:
@@ -114,41 +95,32 @@ const SENTIMENT_MAX_BONUS = 5;
  * - Account Type: 15 points (15%)
  * - MRR Value: 10 points (10%)
  *
- * Additionally, sentiment can modify the score:
- * - Negative sentiment (-1 to 0): reduces score by up to 15 points
- * - Positive sentiment (0 to +1): adds up to 5 points bonus
- *
  * This service is stateless and deterministic.
  */
 export class HealthScoreCalculator {
   /**
    * Calculate health score for a customer
    * @param customer - The customer entity
-   * @param options - Optional parameters including sentiment score
    * @returns Result with HealthScore value object
    */
-  calculate(customer: Customer, options?: HealthScoreOptions): Result<HealthScore, string> {
-    const breakdown = this.getFactorBreakdown(customer, options);
+  calculate(customer: Customer): Result<HealthScore, string> {
+    const breakdown = this.getFactorBreakdown(customer);
     return HealthScore.create(breakdown.total);
   }
 
   /**
    * Get detailed breakdown of scoring factors
    * @param customer - The customer entity
-   * @param options - Optional parameters including sentiment score
    * @returns Individual factor scores and total
    */
-  getFactorBreakdown(customer: Customer, options?: HealthScoreOptions): FactorBreakdown {
+  getFactorBreakdown(customer: Customer): FactorBreakdown {
     const activityStatus = this.calculateActivityStatus(customer);
     const loginRecency = this.calculateLoginRecency(customer);
     const channelAdoption = this.calculateChannelAdoption(customer);
     const accountType = this.calculateAccountType(customer);
     const mrrValue = this.calculateMrrValue(customer);
-    const sentimentAdjustment = this.calculateSentimentAdjustment(options?.averageSentimentScore);
 
-    const baseTotal = activityStatus + loginRecency + channelAdoption + accountType + mrrValue;
-    // Ensure total stays within 0-100 range
-    const total = Math.max(0, Math.min(100, baseTotal + sentimentAdjustment));
+    const total = activityStatus + loginRecency + channelAdoption + accountType + mrrValue;
 
     return {
       activityStatus,
@@ -156,32 +128,8 @@ export class HealthScoreCalculator {
       channelAdoption,
       accountType,
       mrrValue,
-      sentimentAdjustment,
       total,
     };
-  }
-
-  /**
-   * Sentiment Adjustment Factor (-15 to +5 points)
-   * Based on average sentiment score from customer interactions
-   * - Negative sentiment: reduces score proportionally (up to -15)
-   * - Positive sentiment: bonus points (up to +5)
-   */
-  private calculateSentimentAdjustment(averageSentiment?: number): number {
-    if (averageSentiment === undefined) {
-      return 0;
-    }
-
-    // Clamp sentiment to valid range
-    const sentiment = Math.max(-1, Math.min(1, averageSentiment));
-
-    if (sentiment < 0) {
-      // Negative sentiment: linear penalty up to SENTIMENT_MAX_PENALTY
-      return Math.round(sentiment * SENTIMENT_MAX_PENALTY);
-    } else {
-      // Positive sentiment: linear bonus up to SENTIMENT_MAX_BONUS
-      return Math.round(sentiment * SENTIMENT_MAX_BONUS);
-    }
   }
 
   /**
@@ -201,7 +149,6 @@ export class HealthScoreCalculator {
   private calculateLoginRecency(customer: Customer): number {
     const daysSinceLogin = customer.daysSinceLastLogin();
 
-    // If customer has never logged in, they get 0 points
     if (daysSinceLogin === null) {
       return 0;
     }
@@ -262,7 +209,6 @@ export class HealthScoreCalculator {
     return {
       summary:
         'Health score is calculated from 5 weighted factors, totaling 100 points. ' +
-        'Customer sentiment from support chats can adjust the score by -15 to +5 points. ' +
         'Higher scores indicate healthier customer relationships.',
       totalMaxScore: 100,
       factors: [
@@ -320,19 +266,6 @@ export class HealthScoreCalculator {
             '$500+: 4 points',
             '$200+: 2 points',
             'Under $200: 0 points',
-          ],
-        },
-        {
-          name: 'Sentiment',
-          maxPoints: 5,
-          weight: 'Modifier',
-          description: 'Customer sentiment from support chat interactions',
-          criteria: [
-            'Very positive (+1): +5 points',
-            'Positive (+0.5): +3 points',
-            'Neutral (0): 0 points',
-            'Negative (-0.5): -8 points',
-            'Very negative (-1): -15 points',
           ],
         },
       ],
